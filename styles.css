@@ -1,0 +1,120 @@
+/* styles.css */
+
+/* a couple of hints from zoe: 
+    don't change the base font - the streamlit font is good.
+    avoid changing padding and margins - streamlit handles that well and you don't so much.
+    stick to changing font sizes (be consistent!) and colours (pick 1/2 if you must, but again the base theme is good) */
+
+/* Base font family
+html, body, [class*="css"] {
+    font-family: 'Helvetica', 'Arial', sans-serif !important;
+   font-size: 18px !important; /* Increase base font size */
+} */
+
+
+/* General app background and text */
+body, .stApp {
+   background-color: #FFFFFF;
+   color: #1a1a1a;
+}
+
+/* Main content containers */
+.block-container {
+   padding: 2rem;
+   background-color: #FFFFFF;
+}
+
+/* Headings */
+.stTitle, h1 {
+   font-size: 2.5rem !important;
+   color: #005f73;
+}
+
+.stHeader, h2 {
+   font-size: 1.75rem !important;
+   color: #0077b6;
+}
+
+.stSubheader, h3 {
+   font-size: 1.4rem !important;
+   color: #023047;
+}
+
+/* Paragraph text */
+.stMarkdown p, .stText {
+   font-size: 1.125rem !important;
+}
+
+/* Selectboxes and radio buttons */
+.stSelectbox>div, .stRadio>div {
+   background-color: rgba(255, 255, 255, 0.85);
+   color: #005f73;
+   font-size: 1rem;
+}
+
+.stSelectbox>div:hover, .stRadio>div:hover {
+   background-color: #e0f7fa;
+}
+
+/* Sidebar */
+.stSidebar {
+   background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Sidebar header background (gradient) */
+.css-1d391kg {
+   background: linear-gradient(to top, #0077b6, #90e0ef, #ffffff);
+}
+
+div[data-testid="stExpander"] summary {
+   font-size: 200px;
+   font-weight: bold;
+   color: #1481ee;
+   background-color: #f0f0f0;
+   padding: 10px;
+   border-radius: 5px;
+   cursor: pointer;
+}
+/* Custom button styling */
+.custom-button {
+   padding: 0.6rem 1.2rem;
+   font-size: 1.0rem;
+   border-radius: 10px;
+   border: 1px solid #7c87ff;
+   background-color: #5a7df1;
+   color: white;
+   font-weight: 600;
+   cursor: pointer;
+   margin: 0.25rem;
+}
+
+.custom-button:hover {
+   background-color: #7c87ff;
+   border-color: #5a7df1;
+}
+
+.custom-container {
+   display: flex;
+   gap: 1rem;
+   flex-wrap: wrap;
+}
+
+/* Optional wave animation */
+.wave {
+   display: inline-block;
+   animation-name: wave-animation;
+   animation-duration: 2.5s;
+   animation-iteration-count: infinite;
+   transform-origin: 70% 70%;
+}
+
+@keyframes wave-animation {
+   0% { transform: rotate(0deg); }
+   10% { transform: rotate(14deg); }
+   20% { transform: rotate(-8deg); }
+   30% { transform: rotate(14deg); }
+   40% { transform: rotate(-4deg); }
+   50% { transform: rotate(10deg); }
+   60% { transform: rotate(0deg); }
+   100% { transform: rotate(0deg); }
+}

@@ -1,0 +1,8 @@
+Date,Test,Analyser,Material,Sample ID,Batch ID,Lot Number,Analyte 1,Analyte 2,Analyte 3,Analyte 4,Analyte 5,Analyte 6,Analyte 7,Analyte 8,Analyte 9,Analyte 10,Analyte 11,Analyte 12,Analyte 13,Analyte 14,Analyte 15
+DD/MM/YY,Inter_Batch_Imprecision,Analyser1,QC1,"e.g., ENBS_QC1",,,0.098,0.109,0.071,0.073,18.213,54.224,88.175,150.357,128.5261786,148.4397738,168.353369,188.2669643,208.1805595,228.0941548,248.00775
+,Intra_Batch_Imprecision,Analyser2,QC2,,,,,,,,,,,,,,,,,,
+,Intra_Well_Imprecision,Analyser3,QC3,,,,,,,,,,,,,,,,,,
+,Method_Comparison,Analyser4,QC4,,,,,,,,,,,,,,,,,,
+,,Analyser5,QC5,,,,,,,,,,,,,,,,,,
+,,,Patient,,,,,,,,,,,,,,,,,,
+,,,EQA,,,,,,,,,,,,,,,,,,

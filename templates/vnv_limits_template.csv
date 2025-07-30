@@ -1,0 +1,8 @@
+Date,Test,Analyser,Material,Sample ID,Sample Name,Batch ID,Lot Number,Expected Analyte 1,Calculated Analyte 1,Analyte 1 IS Response,Analyte 1 Response,Expected Analyte 2,Calculated Analyte 2,Analyte 2 IS Response,Analayte 2 Response,Expected Analyte 3,Calculated Analyte 3,Analyte 3 IS Response,Analyte 3 Response
+DD/MM/YY,LOQ,,LowConc1,LowConc1,LowConc1 (Neat),,,,,,,,,,,,,,
+,LOD,,Low Cal,Low Cal A,Low Cal A (Diluted 1/1),,,,,,,,,,,,,,
+,,,Low Cal,Low Cal B,Low Cal B (Diluted (1/2),,,,,,,,,,,,,,
+,,,Low Cal,Low Cal C,Low Cal C (Diluted 1/10),,,,,,,,,,,,,,
+,,,Blank,Blank 1,Blank 1,,,,,,,,,,,,,,
+,,,Blank,Blank 2,Blank 2,,,,,,,,,,,,,,
+,,,Blank,Blank 3,Blank 3,,,,,,,,,,,,,,

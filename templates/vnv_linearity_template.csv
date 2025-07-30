@@ -1,0 +1,11 @@
+Date,Analyser,Material,Sample ID,Sample Name,Supplier,Exp Concentration Analyte1,Calculated Concentration Analyte1,Analyte 1 IS Int,Analyte 1 Int,Exp Concentration Analyte2,Calculated Concentration Analyte2,Analyte 2 IS Int,Analyte 2 Int,Exp Concentration Analyte3,Calculated Concentration Analyte3,Analyte 3 IS Int,Analyte 3 Int,Exp Concentration Analyte4,Calculated Concentration Analyte4,Analyte 4 IS Int,Analyte 4 Int
+DD/MM/YY,Analyser1,Standard,Standard1,Assay Standard1,Misc. Supplier,,,,,,,,,,,,,,,,
+,Analyser2,,Standard2,Assay Standard2,,,,,,,,,,,,,,,,,
+,,,Standard3,Assay Standard3,,,,,,,,,,,,,,,,,
+,,,Standard4,Assay Standard4,,,,,,,,,,,,,,,,,
+,,,Standard5,Assay Standard5,,,,,,,,,,,,,,,,,
+,,,Standard6,Assay Standard6,,,,,,,,,,,,,,,,,
+,,,Standard7,Assay Standard7,,,,,,,,,,,,,,,,,
+,,,Standard8,Assay Standard8,,,,,,,,,,,,,,,,,
+,,,Standard9,Assay Standard9,,,,,,,,,,,,,,,,,
+,,,Standard10,Assay Standard10,,,,,,,,,,,,,,,,,
