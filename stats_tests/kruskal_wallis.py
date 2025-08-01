@@ -2,90 +2,93 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from scipy.stats import kruskal
+from utils import apply_app_styling, units_list, show_footer
 
-def run():
-    st.header("📊 Kruskal-Wallis Test for Independent Samples")
+apply_app_styling()
 
-    with st.expander("📘 What is the Kruskal-Wallis Test?", expanded=False):
-        st.write("""
-            The **Kruskal-Wallis H-test** is a **non-parametric** method for testing whether samples originate from the same distribution.
-            
-            It is used as an alternative to one-way ANOVA when the assumptions of ANOVA (e.g. normality, equal variance) are not met.
-            
-            - Suitable for **ordinal** or **non-normally distributed** data.
-            - Tests for differences **across three or more independent groups**.
-        """)
+st.header("📊 Kruskal-Wallis Test for Independent Samples")
 
-    with st.expander("📘 Instructions"):
-        st.markdown("""
-            1. Upload a CSV file where:
-               - `Material` is in column 4 (index 3)
-               - Analyte values start from column 6 (index 5) onward.
-            2. The Kruskal-Wallis test will be run **separately for each analyte**, comparing values **across QC levels**.
-        """)
+with st.expander("📘 What is the Kruskal-Wallis Test?", expanded=True):
+    st.write("""
+        The **Kruskal-Wallis H-test** is a **non-parametric** method for testing whether samples originate from the same distribution.
+        
+        It is used as an alternative to one-way ANOVA when the assumptions of ANOVA (e.g. normality, equal variance) are not met.
+        
+        - Suitable for **ordinal** or **non-normally distributed** data.
+        - Tests for differences **across three or more independent groups**.
+    """)
 
-    with st.expander("📤 Upload Your CSV File", expanded=True):
-        uploaded_file = st.file_uploader("Upload your CSV", type=["csv"])
+with st.expander("📘 Instructions"):
+    st.markdown("""
+        1. Upload a CSV file where:
+            - `Material` is in Column 4.
+            - Analyte values start from Column 6 onward.
+        2. The Kruskal-Wallis test will be run **separately for each analyte**, comparing values **across QC levels**.
+    """)
 
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
+# File uploader
+with st.expander("📤 Upload Your CSV File", expanded=True):
+    uploaded_file = st.file_uploader("  ", type="csv")
 
-            material_col = df.columns[3]
-            analyte_cols = df.columns[5:]
-            df[material_col] = df[material_col].astype(str)
+# Run analysis if file is uploaded
+if uploaded_file:
+    try:
+        df = pd.read_csv(uploaded_file)
+        material_col = df.columns[3]
+        analyte_cols = df.columns[5:]
 
-            st.subheader("📋 Raw Data Preview")
-            st.dataframe(df.head())
+        df[material_col] = df[material_col].astype(str)
 
-            if st.button("Run Kruskal-Wallis Test"):
-                results = []
+        st.subheader("🔍 Data Preview")
+        st.dataframe(df.head())
 
-                for material in df[material_col].unique():
-                    material_df = df[df[material_col] == material]
+        if st.button("🚀 Run Kruskal-Wallis Test"):
+            results = []
 
-                    if material_df.empty:
+            for material in df[material_col].unique():
+                subset_df = df[df[material_col] == material]
+
+                for analyte in analyte_cols:
+                    data = subset_df[[material_col, analyte]].dropna()
+
+                    # Skip if fewer than 2 groups
+                    if data[material_col].nunique() < 2:
+                        results.append({
+                            "Material": material,
+                            "Analyte": analyte,
+                            "H Statistic": np.nan,
+                            "p-value": np.nan,
+                            "Result": "⚠️ Not enough groups"
+                        })
                         continue
 
-                    for analyte in analyte_cols:
-                        subset = material_df[[material_col, analyte]].dropna()
+                    try:
+                        groups = [group[analyte].values for _, group in data.groupby(material_col)]
+                        h_stat, p_val = kruskal(*groups)
 
-                        if subset[material_col].nunique() < 2:
-                            results.append({
-                                "Material": material,
-                                "Analyte": analyte,
-                                "H Statistic": np.nan,
-                                "p-value": np.nan,
-                                "Result": "⚠️ Not enough groups"
-                            })
-                            continue
+                        results.append({
+                            "Material": material,
+                            "Analyte": analyte,
+                            "H Statistic": round(h_stat, 4),
+                            "p-value": round(p_val, 4),
+                            "Result": "✅ No significant difference" if p_val >= 0.05 else "❌ Significant difference"
+                        })
 
-                        try:
-                            groups = [group[analyte].values for _, group in subset.groupby(material_col)]
-                            stat, p_value = kruskal(*groups)
+                    except Exception as e:
+                        results.append({
+                            "Material": material,
+                            "Analyte": analyte,
+                            "H Statistic": np.nan,
+                            "p-value": np.nan,
+                            "Result": f"❌ Error: {str(e)}"
+                        })
 
-                            result_text = "❌ Significant difference" if p_value < 0.05 else "✅ No significant difference"
+            # Display results
+            results_df = pd.DataFrame(results)
+            st.subheader("📈 Kruskal-Wallis Test Results")
+            st.dataframe(results_df)
 
-                            results.append({
-                                "Material": material,
-                                "Analyte": analyte,
-                                "H Statistic": round(stat, 4),
-                                "p-value": round(p_value, 4),
-                                "Result": result_text
-                            })
-
-                        except Exception as e:
-                            results.append({
-                                "Material": material,
-                                "Analyte": analyte,
-                                "H Statistic": np.nan,
-                                "p-value": np.nan,
-                                "Result": f"❌ Error: {e}"
-                            })
-
-                results_df = pd.DataFrame(results)
-                st.subheader("📈 Kruskal-Wallis Test Results")
-                st.dataframe(results_df)
-
-        except Exception as e:
-            st.error(f"⚠️ Error loading data: {e}")
+    except Exception as e:
+        st.error(f"❗ Error loading file: {e}")
+        
+show_footer()

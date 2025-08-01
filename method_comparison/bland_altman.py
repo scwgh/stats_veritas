@@ -267,101 +267,6 @@ def prepare_matched_data(df, material_type, selected_analyte, analyzer_1, analyz
     
     return merged_data
 
-def run():
-    st.title("🥼 Bland-Altman Analysis")
-
-    with st.expander("📘 What is Bland-Altman Analysis?"):
-        st.markdown("""
-        Bland-Altman analysis is a method for assessing the **agreement between two measurement methods** by plotting the **difference** against the **mean** of the two methods for each sample.
-        \n Given a set of paired measurements (_x_ and _y_) where _i_ = 1 to _n_, the Bland-Altman plots calculate as:
-        """)
-        st.latex(r'\text{y axis} = {y}_i - {x}_i')
-        st.latex(r'\text{x axis} = \frac{{y}_i + {x}_i}{2}')
-        st.markdown("""
-        This analysis is used to evaluate if two analyzers provide results that are **consistently close** enough for clinical or research purposes.
-        \n The reference line for the mean gives an indication of the bias between the two methods. 
-        \n The limits of agreement help assess whether the differences between two methods are practically significant. If the differences follow an approximately normal distribution, around 95% of the differences should fall within these limits. If the limits of agreement are considered clinically insignificant, the two measurement methods may be regarded as equivalent for practical purposes. However, especially with small sample sizes, these limits may not be reliable. In such cases, the confidence limits for the limits of agreement can provide an indication of the uncertainty. While these confidence limits are only approximate, they should be sufficient for most applications.
-        \n Any results which are identified as outliers using the **Grubbs test** will be marked with a red square (🟥). 
-        \n To exclude outliers from analysis for a given analyte, select the checkbox in the Analysis Settings section.""")
-
-    with st.expander("📘 Instructions:"):
-        st.markdown("""
-        1. **Upload your CSV file** containing multi-analyte results.
-        2. Your file must include these columns: `Material`, `Analyser`, `Sample ID`, `Batch ID`, `Lot Number` and at least one analyte.
-        3. Configure your analysis settings in the "Analysis Settings" section below.
-        4. Click **"Run Bland-Altman Analysis"** to generate plots and statistics for each analyte.
-        """)
-
-    with st.expander("📤 Upload Your CSV File", expanded=True):
-        st.markdown("Upload a CSV containing your analyte data. Ensure it includes the following columns: `Material`, `Analyser`, and `Sample ID`.")
-        uploaded_file = st.file_uploader("Choose a file to get started", type=["csv"])
-
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-    
-        required_cols = ['Analyser', 'Material', 'Sample ID']
-        if not all(col in df.columns for col in required_cols):
-            st.error(f"Missing required columns: {', '.join(required_cols)}")
-        else:
-            # All settings in one expander
-            with st.expander("⚙️ Analysis Settings", expanded=True):
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    material_type = st.selectbox("Select Material Type", df['Material'].unique())
-                    analytes = df.columns[7:]
-                    selected_analyte = st.selectbox("Select Analyte", analytes)
-                    
-                with col2:
-                    analyzers = df["Analyser"].unique()
-                    if len(analyzers) < 2:
-                        st.warning("Need at least two analyzers in the dataset.")
-                        return
-
-                    analyzer_1 = st.selectbox("Select Reference Analyzer (Analyser 1)", analyzers, key="ref")
-                    remaining_analyzers = [a for a in analyzers if a != analyzer_1]
-                    analyzer_2 = st.selectbox("Select Test Analyzer (Analyser 2)", remaining_analyzers, key="test")
-
-                units = st.selectbox(
-                    "Select Units for Analytes",
-                    options=units_list, 
-                    index=0
-                )
-                
-                # Enhanced Outlier Detection Settings
-                st.markdown("**Enhanced Outlier Detection Settings**")
-                
-                # Add significance level selection for Grubbs test
-                alpha = st.selectbox(
-                    "Select significance level for statistical tests",
-                    options=[0.05, 0.01, 0.001],
-                    index=0,
-                    format_func=lambda x: f"α = {x}"
-                )
-                
-                # Prepare matched data for outlier detection preview
-                merged_data = prepare_matched_data(df, material_type, selected_analyte, analyzer_1, analyzer_2)
-                
-                if len(merged_data) == 0:
-                    st.warning(f"No matching samples found between {analyzer_1} and {analyzer_2} for {selected_analyte}")
-                    return
-                
-                # Enhanced outlier detection with multiple methods
-                selected_outliers, method_choice = perform_outlier_detection_with_options(
-                    merged_data, selected_analyte, analyzer_1, analyzer_2, alpha
-                )
-                
-                exclude_outliers = False
-                if selected_outliers.any():
-                    exclude_outliers = st.checkbox("Exclude detected outliers from analysis", value=False)
-                    if exclude_outliers:
-                        outlier_sample_ids = merged_data['Sample ID'].iloc[selected_outliers].tolist()
-                        st.warning(f"⚠️ {sum(selected_outliers)} outlier(s) will be excluded from analysis using {method_choice}: {', '.join(map(str, outlier_sample_ids))}")
-
-            # Run analysis button
-            if st.button("🔬 Run Bland-Altman Analysis", type="primary"):
-                bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analyzer_2, units, exclude_outliers, alpha, selected_outliers, method_choice)
-
 def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analyzer_2, units, exclude_outliers, alpha, selected_outliers=None, method_choice=None):
     """
     Perform Bland-Altman analysis and create plots
@@ -1000,5 +905,94 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
     else:
         st.warning("No valid combinations found for analysis. Please check your data format and ensure there are matching samples between analyzers.")
 
-if __name__ == "__main__":
-    run()
+
+st.header("🥼 Bland-Altman Analysis")
+with st.expander("📘 What is Bland-Altman Analysis?", expanded=True):
+    st.markdown("""
+    Bland-Altman analysis is a method for assessing the **agreement between two measurement methods** by plotting the **difference** against the **mean** of the two methods for each sample.
+    \n Given a set of paired measurements (_x_ and _y_) where _i_ = 1 to _n_, the Bland-Altman plots calculate as:
+    """)
+    st.latex(r'\text{y axis} = {y}_i - {x}_i')
+    st.latex(r'\text{x axis} = \frac{{y}_i + {x}_i}{2}')
+    st.markdown("""
+    This analysis is used to evaluate if two analyzers provide results that are **consistently close** enough for clinical or research purposes.
+    \n The reference line for the mean gives an indication of the bias between the two methods. 
+    \n The limits of agreement help assess whether the differences between two methods are practically significant. If the differences follow an approximately normal distribution, around 95% of the differences should fall within these limits. If the limits of agreement are considered clinically insignificant, the two measurement methods may be regarded as equivalent for practical purposes. However, especially with small sample sizes, these limits may not be reliable. In such cases, the confidence limits for the limits of agreement can provide an indication of the uncertainty. While these confidence limits are only approximate, they should be sufficient for most applications.
+    \n Outliers may be identified by a number of methods: Grubbs' test (single test, which will identify the single most significant outlier; or iterative, which will loop through to identify all Grubbs' outliers); or limits test (any results which are ±1.96σ). Any datapoints which are identified as outliers will be marked with a red square (). 
+    \n You can choose to identify and exclude outliers using the checkboxes provided. It is not possible to select individual datapoints to exclude or include in your calculations and tests.""")
+
+with st.expander("📘 Instructions:"):
+    st.markdown("""
+    1. **Upload your CSV file** containing multi-analyte results.
+    2. Your file must include these columns: `Material`, `Analyser`, `Sample ID`, `Batch ID`, `Lot Number` and at least one analyte.
+    3. Configure your analysis settings in the "Analysis Settings" section below. 
+    4. Choose the material you wish to test and select your 'Reference' and 'Test' analysers. Choose to identify and exclude outliers and by which method.  
+    5. Click **"Run Bland-Altman Analysis"** to generate plots and statistics for each analyte.
+    """)
+
+with st.expander("📤 Upload Your CSV File", expanded=True):
+    uploaded_file = st.file_uploader("   ", type=["csv"])
+
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+
+    required_cols = ['Analyser', 'Material', 'Sample ID']
+    if not all(col in df.columns for col in required_cols):
+        st.error(f"Missing required columns: {', '.join(required_cols)}")
+    else:
+        # All settings in one expander
+        with st.expander("⚙️ Analysis Settings", expanded=True):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                material_type = st.selectbox("Select Material Type", df['Material'].unique())
+                analytes = df.columns[7:]
+                selected_analyte = st.selectbox("Select Analyte", analytes)
+                
+            with col2:
+                analyzers = df["Analyser"].unique()
+                if len(analyzers) < 2:
+                    st.warning("Need at least two analyzers in the dataset.")
+
+                analyzer_1 = st.selectbox("Select Reference Analyzer (Analyser 1)", analyzers, key="ref")
+                remaining_analyzers = [a for a in analyzers if a != analyzer_1]
+                analyzer_2 = st.selectbox("Select Test Analyzer (Analyser 2)", remaining_analyzers, key="test")
+
+            units = st.selectbox(
+                "Select Units for Analytes",
+                options=units_list, 
+                index=0
+            )
+            
+            # Enhanced Outlier Detection Settings
+            st.markdown("**Enhanced Outlier Detection Settings**")
+            
+            # Add significance level selection for Grubbs test
+            alpha = st.selectbox(
+                "Select significance level for statistical tests",
+                options=[0.05, 0.01, 0.001],
+                index=0,
+                format_func=lambda x: f"α = {x}"
+            )
+            
+            # Prepare matched data for outlier detection preview
+            merged_data = prepare_matched_data(df, material_type, selected_analyte, analyzer_1, analyzer_2)
+            
+            if len(merged_data) == 0:
+                st.warning(f"No matching samples found between {analyzer_1} and {analyzer_2} for {selected_analyte}")
+            
+            # Enhanced outlier detection with multiple methods
+            selected_outliers, method_choice = perform_outlier_detection_with_options(
+                merged_data, selected_analyte, analyzer_1, analyzer_2, alpha
+            )
+            
+            exclude_outliers = False
+            if selected_outliers.any():
+                exclude_outliers = st.checkbox("Exclude detected outliers from analysis", value=False)
+                if exclude_outliers:
+                    outlier_sample_ids = merged_data['Sample ID'].iloc[selected_outliers].tolist()
+                    st.warning(f"⚠️ {sum(selected_outliers)} outlier(s) will be excluded from analysis using {method_choice}: {', '.join(map(str, outlier_sample_ids))}")
+
+        # Run analysis button
+        if st.button("🔬 Run Bland-Altman Analysis", type="primary"):
+            bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analyzer_2, units, exclude_outliers, alpha, selected_outliers, method_choice)

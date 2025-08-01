@@ -24,54 +24,54 @@ def pp_plot(data, ax, title="P–P Plot"):
     ax.legend()
     ax.grid(True)
 
-def run():
-    st.header("📈 P–P Plot (Probability–Probability Plot)")
 
-    with st.expander("📘 What is a P–P Plot?", expanded=False):
-        st.write("""
-            A **P–P plot** compares the cumulative distribution of your data against a theoretical distribution (e.g. normal).
-            If the data follows the distribution well, points will lie along the 45° diagonal line.
+st.header("📈 P–P Plot (Probability–Probability Plot)")
 
-            - Helps check **normality** visually.
-            - Complements formal tests like **K-S**, **Shapiro-Wilk**, etc.
-        """)
+with st.expander("📘 What is a P–P Plot?", expanded=False):
+    st.write("""
+        A **P–P plot** compares the cumulative distribution of your data against a theoretical distribution (e.g. normal).
+        If the data follows the distribution well, points will lie along the 45° diagonal line.
 
-    with st.expander("📘 Instructions"):
-        st.markdown("""
-            1. Upload a CSV file where:
-               - `Material` is in column 4 (index 3).
-               - Analyte columns start from column 6 (index 5) onward.
-            2. P–P plots will be created per analyte within each `Material`.
-        """)
+        - Helps check **normality** visually.
+        - Complements formal tests like **K-S**, **Shapiro-Wilk**, etc.
+    """)
 
-    with st.expander("📤 Upload Your CSV File", expanded=True):
-        uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+with st.expander("📘 Instructions"):
+    st.markdown("""
+        1. Upload a CSV file where:
+            - `Material` is in column 4 (index 3).
+            - Analyte columns start from column 6 (index 5) onward.
+        2. P–P plots will be created per analyte within each `Material`.
+    """)
 
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
+with st.expander("📤 Upload Your CSV File", expanded=True):
+    uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
-            material_col = df.columns[3]
-            analyte_cols = df.columns[5:]
-            df[material_col] = df[material_col].astype(str)
+if uploaded_file is not None:
+    try:
+        df = pd.read_csv(uploaded_file)
 
-            st.subheader("📋 Raw Data Preview")
-            st.dataframe(df.head())
+        material_col = df.columns[3]
+        analyte_cols = df.columns[5:]
+        df[material_col] = df[material_col].astype(str)
 
-            if st.button("Generate P–P Plots"):
-                for analyte in analyte_cols:
-                    st.markdown(f"### 🔬 Analyte: **{analyte}**")
+        st.subheader("📋 Raw Data Preview")
+        st.dataframe(df.head())
 
-                    for material, group_df in df.groupby(material_col):
-                        data = group_df[analyte].dropna()
+        if st.button("Generate P–P Plots"):
+            for analyte in analyte_cols:
+                st.markdown(f"### 🔬 Analyte: **{analyte}**")
 
-                        if len(data) < 5:
-                            st.warning(f"Not enough data for {analyte} in Material {material}.")
-                            continue
+                for material, group_df in df.groupby(material_col):
+                    data = group_df[analyte].dropna()
 
-                        fig, ax = plt.subplots()
-                        pp_plot(data, ax, title=f"{analyte} - {material}")
-                        st.pyplot(fig)
+                    if len(data) < 5:
+                        st.warning(f"Not enough data for {analyte} in Material {material}.")
+                        continue
 
-        except Exception as e:
-            st.error(f"⚠️ Error loading data: {e}")
+                    fig, ax = plt.subplots()
+                    pp_plot(data, ax, title=f"{analyte} - {material}")
+                    st.pyplot(fig)
+
+    except Exception as e:
+        st.error(f"⚠️ Error loading data: {e}")

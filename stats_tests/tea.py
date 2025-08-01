@@ -1,163 +1,175 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
-import io
+from utils import apply_app_styling, units_list, show_footer
 
-def run():
-    st.header("🧮 Total Allowable Error (TEa) Analysis")
+apply_app_styling()
 
-    with st.expander("📘 What is TEa?", expanded=False):
-        st.markdown("""
-        **Total Allowable Error (TEa)** is a quality goal in laboratory medicine that defines the maximum allowable error for a test result, combining imprecision and bias.
-        
-        It is calculated as:
-        \[
-        \text{TE} = \left| \text{Bias} \right| + z \cdot \text{SD}
-        \]
-        where _z_ is the z-score for the desired confidence level (commonly 1.96 for 95%).
+st.header("🧮 Total Allowable Error (TEa) Analysis")
 
-        **The result passes if:**
-        \[
-        \text{TE} \leq \text{TEa}
-        \]
-        """)
+with st.expander("📘 What is TEa?", expanded=True):
+    st.markdown("""
+    **Total Allowable Error (TEa)** is a quality goal in laboratory medicine that defines the maximum allowable error for a test result, combining imprecision and bias.
+    """)
 
-    with st.expander("📘 Instructions"):
-        st.markdown("""
-        1. Upload a CSV file with:
-            - **Measured** results (e.g., observed values),
-            - **Target** results (e.g., expected or reference values),
-            - **Material**, **Analyser**, and **Sample ID**.
-        2. Choose a material for analysis and provide the corresponding target value and TEa.
-        3. The app will calculate Bias, SD, TE, and evaluate performance.
-        """)
+    st.latex(r"TE = |\text{Bias}| + z \cdot SD")
 
-    # --- File Upload ---
-    with st.expander("📤 Upload Your CSV File", expanded=True):
-        st.markdown("Upload a CSV containing your analyte data. Ensure it includes the following columns: `Material`, `Analyser`, and `Sample ID`.")
-        uploaded_file = st.file_uploader("Choose a file to get started", type=["csv"])
+    st.markdown("""
+    Where:
+    - **Bias** is the difference between the measured and target value
+    - **SD** is the standard deviation (imprecision)
+    - **z** is the z-score for the desired confidence level (e.g., 1.96 for 95%)
 
-    if not uploaded_file:
-        return  # If no file is uploaded, exit the function
+    **A result passes if:**
+    """)
 
-    df = pd.read_csv(uploaded_file)
-    st.subheader("📊 Data Preview")
-    st.dataframe(df)
+    st.latex(r"TE \leq TEa")
 
-    # Ensure that the required columns are present
-    if 'Material' not in df.columns or 'Analyser' not in df.columns or 'Sample ID' not in df.columns:
-        st.error("❌ The CSV file must contain columns for 'Material', 'Analyser', and 'Sample ID'.")
-        return
-
-    # Let the user select the material for analysis
-    materials = df['Material'].unique()
-    selected_material = st.selectbox("Select Material for TEa Analysis", materials)
-
-    # Filter the data based on the selected material
-    filtered_df = df[df['Material'] == selected_material]
-
-    # Get the numeric columns for the analysis
-    numeric_cols = filtered_df.select_dtypes(include='number').columns.tolist()
-
-    # Let the user choose which column is measured
-    measured_col = st.selectbox("Select column for Measured values", numeric_cols)
+with st.expander("📊 Visual Explanation of TEa Components", expanded=True):
+    st.markdown("This diagram illustrates how Bias and SD contribute to Total Error (TE), and how TE is compared against the Total Allowable Error (TEa).")
     
-    # Let the user manually enter the target value
-    target_value = st.number_input("Enter the target value (expected or reference value)", value=0.0)
+    target = 100
+    bias = 5
+    sd = 2
+    z = 1.96
+    tea = 10
+    measured = target + bias
+    te = abs(bias) + z * sd
 
-    # Option to use either a fixed TEa or column-based TEa
-    tea_option = st.radio("Do you want to use a fixed TEa or column-based TEa?", ["Fixed value", "Column-based"])
+    fig, ax = plt.subplots(figsize=(10, 2))
+    ax.axvline(target, color='green', linestyle='--', label='Target')
+    ax.plot(measured, 0, 'ro', label='Measured')
+    ax.annotate('', xy=(target, 0.05), xytext=(measured, 0.05),
+                arrowprops=dict(arrowstyle='<->', color='orange', lw=2))
+    ax.text((target + measured) / 2, 0.08, 'Bias', color='orange', ha='center')
+    sd_start = measured - sd
+    sd_end = measured + sd
+    ax.plot([sd_start, sd_end], [0, 0], color='blue', lw=4, alpha=0.5, label='±1 SD')
+    ax.axvline(target + tea, color='purple', linestyle=':', label='TEa Threshold')
+    ax.text(target + tea + 0.5, 0.02, 'TEa', color='purple', rotation=90, va='bottom')
+    ax.annotate('', xy=(target, -0.05), xytext=(target + te, -0.05),
+                arrowprops=dict(arrowstyle='<->', color='red', lw=2))
+    ax.text(target + te / 2, -0.08, 'Total Error (TE)', color='red', ha='center')
+    ax.set_ylim(-0.15, 0.15)
+    ax.set_xlim(target - 15, target + 20)
+    ax.axis('off')
+    ax.legend(loc='upper left')
+    st.pyplot(fig)
 
-    # Handle fixed TEa input
-    if tea_option == "Fixed value":
-        tea_value = st.number_input("Enter fixed TEa (%)", min_value=0.0, value=20.0)
-        filtered_df['TEa'] = tea_value
-    else:  # Handle column-based TEa selection
-        tea_col = st.selectbox("Select TEa column", numeric_cols)
-        filtered_df['TEa'] = filtered_df[tea_col]
+with st.expander("📘 Instructions"):
+    st.markdown("""
+    1. Upload a CSV file with:
+        - **Measured** results (e.g., observed values),
+        - **Target** results (e.g., expected or reference values),
+        - **Material**, **Analyser**, and **Sample ID**.
+    2. Choose a material for analysis and provide the corresponding target value and TEa.
+    3. The app will calculate Bias, SD, TE, and evaluate performance.
+    """)
 
-    # Z-value input
-    z_value = st.number_input("Z-value for confidence interval (default 1.96 for 95% confidence)", value=1.96)
+# --- File Upload ---
+with st.expander("📤 Upload Your CSV File", expanded=True):
+    uploaded_file = st.file_uploader("   ", type=["csv"])
 
-    # Run the analysis when the button is pressed
-    if st.button("Run TEa Analysis"):
-        try:
-            # Calculate Bias, Abs Bias %, SD, TE, and Pass/Fail status
-            filtered_df['Bias'] = filtered_df[measured_col] - target_value  # Using the manually entered target value
-            filtered_df['Abs Bias %'] = 100 * filtered_df['Bias'].abs() / target_value
-            filtered_df['SD'] = filtered_df[measured_col].std()
-            filtered_df['TE'] = filtered_df['Abs Bias %'] + z_value * filtered_df['SD']
-            filtered_df['Pass'] = filtered_df['TE'] <= filtered_df['TEa']
+if uploaded_file:
+    try:
+        df = pd.read_csv(uploaded_file)
+        st.subheader("📊 Data Preview")
+        st.dataframe(df)
 
-            st.success("✅ TEa Evaluation Complete")
-            st.dataframe(filtered_df[['Material', 'Bias', 'Abs Bias %', 'SD', 'TE', 'TEa', 'Pass']])
+        required_columns = {'Material', 'Analyser', 'Sample ID'}
+        if not required_columns.issubset(df.columns):
+            st.error(f"❌ The CSV must contain the following columns: {required_columns}")
+        else:
+            # Let the user select the material for analysis
+            materials = df['Material'].unique()
+            selected_material = st.selectbox("Select Material for TEa Analysis", materials)
 
-            fail_count = (~filtered_df['Pass']).sum()
-            st.write(f"🔍 Number of failures: {fail_count} out of {len(filtered_df)}")
-            if fail_count == 0:
-                st.success("🎉 All results are within Total Allowable Error!")
+            # Filter by selected material
+            filtered_df = df[df['Material'] == selected_material]
+
+            numeric_cols = filtered_df.select_dtypes(include='number').columns.tolist()
+            measured_col = st.selectbox("Select column for Measured values", numeric_cols)
+
+            target_value = st.number_input("Enter the target value (expected/reference)", value=1.0, min_value=0.0001)
+
+            tea_option = st.radio("Use fixed or column-based TEa?", ["Fixed value", "Column-based"])
+            if tea_option == "Fixed value":
+                tea_value = st.number_input("Enter fixed TEa (%)", min_value=0.0, value=20.0)
+                filtered_df['TEa'] = tea_value
             else:
-                st.warning("⚠️ Some results exceed Total Allowable Error.")
+                tea_col = st.selectbox("Select TEa column", numeric_cols)
+                filtered_df['TEa'] = filtered_df[tea_col]
 
-        except Exception as e:
-            st.error(f"Error during TEa analysis: {e}")
+            z_value = st.number_input("Z-value for confidence level", value=1.96)
 
-    # Add a section for performing TEa analysis for all analytes
-    with st.expander("📊 Perform TEa for All Analytes"):
-        all_materials = df['Material'].unique()
-        selected_material_all = st.selectbox("Select Material for All Analytes", all_materials)
+            if st.button("Run TEa Analysis"):
+                try:
+                    filtered_df['Bias'] = filtered_df[measured_col] - target_value
+                    filtered_df['Abs Bias %'] = 100 * filtered_df['Bias'].abs() / target_value
+                    sd = filtered_df[measured_col].std()
+                    filtered_df['SD'] = sd
+                    filtered_df['TE'] = filtered_df['Abs Bias %'] + z_value * sd
+                    filtered_df['Pass'] = filtered_df['TE'] <= filtered_df['TEa']
 
-        # Filter data for selected material
-        filtered_df_all = df[df['Material'] == selected_material_all]
+                    st.success("✅ TEa Evaluation Complete")
+                    st.dataframe(filtered_df[['Material', measured_col, 'Bias', 'Abs Bias %', 'SD', 'TE', 'TEa', 'Pass']])
 
-        # Get all analyte columns (assuming analytes are in numeric columns)
-        analyte_cols = filtered_df_all.select_dtypes(include='number').columns.tolist()
-
-        # Let the user choose which column is measured for all analytes
-        measured_col_all = st.selectbox("Select column for Measured values (for all analytes)", analyte_cols)
-
-        # Let the user manually enter the target value for all analytes
-        target_value_all = st.number_input("Enter the target value for all analytes (expected or reference value)", value=0.0)
-
-        # Perform the TEa calculation for all analytes
-        if st.button("Run TEa Analysis for All Analytes"):
-            try:
-                # Create a new dataframe to hold the results for all analytes
-                results = []
-
-                for analyte_col in analyte_cols:
-                    temp_df = filtered_df_all.copy()
-
-                    # Set TEa for each analyte in the loop
-                    if tea_option == "Fixed value":
-                        temp_df['TEa'] = tea_value  # Using the fixed TEa value
+                    fail_count = (~filtered_df['Pass']).sum()
+                    st.write(f"🔍 Number of failures: {fail_count} of {len(filtered_df)}")
+                    if fail_count == 0:
+                        st.success("🎉 All results are within Total Allowable Error!")
                     else:
-                        temp_df['TEa'] = temp_df[tea_col]  # Using the column-based TEa
+                        st.warning("⚠️ Some results exceed Total Allowable Error.")
 
-                    # Calculate Bias, Abs Bias %, SD, TE, and Pass/Fail status for each analyte
-                    temp_df['Bias'] = temp_df[measured_col_all] - target_value_all
-                    temp_df['Abs Bias %'] = 100 * temp_df['Bias'].abs() / target_value_all
-                    temp_df['SD'] = temp_df[measured_col_all].std()
-                    temp_df['TE'] = temp_df['Abs Bias %'] + z_value * temp_df['SD']
-                    temp_df['Pass'] = temp_df['TE'] <= temp_df['TEa']
-                    temp_df['Analyte'] = analyte_col
-                    results.append(temp_df[['Material', 'Analyte', 'Bias', 'Abs Bias %', 'SD', 'TE', 'TEa', 'Pass']])
+                except Exception as e:
+                    st.error(f"Error during TEa analysis: {e}")
 
-                # Combine results into one dataframe
-                all_results_df = pd.concat(results)
+            # --- All Analytes TEa Analysis ---
+            with st.expander("📊 Perform TEa Analysis for All Analytes"):
+                selected_material_all = st.selectbox("Select Material (All Analytes)", materials)
+                df_all = df[df['Material'] == selected_material_all]
+                analyte_cols = df_all.select_dtypes(include='number').columns.tolist()
+                target_value_all = st.number_input("Enter target value for all analytes", value=1.0, min_value=0.0001)
 
-                # Display results for all analytes
-                st.success("✅ TEa Analysis for All Analytes Complete")
-                st.dataframe(all_results_df)
+                if st.button("Run TEa Analysis for All Analytes"):
+                    try:
+                        results = []
+                        for analyte_col in analyte_cols:
+                            temp_df = df_all.copy()
+                            temp_df['Bias'] = temp_df[analyte_col] - target_value_all
+                            temp_df['Abs Bias %'] = 100 * temp_df['Bias'].abs() / target_value_all
+                            sd = temp_df[analyte_col].std()
+                            temp_df['SD'] = sd
+                            if tea_option == "Fixed value":
+                                temp_df['TEa'] = tea_value
+                            else:
+                                if tea_col in df_all.columns:
+                                    temp_df['TEa'] = df_all[tea_col]
+                                else:
+                                    continue  # Skip if TEa column not found
+                            temp_df['TE'] = temp_df['Abs Bias %'] + z_value * sd
+                            temp_df['Pass'] = temp_df['TE'] <= temp_df['TEa']
+                            temp_df['Analyte'] = analyte_col
+                            results.append(temp_df[['Material', 'Analyte', analyte_col, 'Bias', 'Abs Bias %', 'SD', 'TE', 'TEa', 'Pass']])
 
-                # Provide option to download results as CSV
-                csv = all_results_df.to_csv(index=False)
-                st.download_button(
-                    label="Download Results as CSV",
-                    data=csv,
-                    file_name=f"TEa_Analysis_{selected_material_all}.csv",
-                    mime="text/csv"
-                )
+                        if results:
+                            all_results_df = pd.concat(results)
+                            st.success("✅ TEa Analysis for All Analytes Complete")
+                            st.dataframe(all_results_df)
 
-            except Exception as e:
-                st.error(f"Error during TEa analysis for all analytes: {e}")
+                            csv = all_results_df.to_csv(index=False)
+                            st.download_button(
+                                label="Download Results as CSV",
+                                data=csv,
+                                file_name=f"TEa_Analysis_{selected_material_all}.csv",
+                                mime="text/csv"
+                            )
+                        else:
+                            st.warning("⚠️ No analyte results generated. Check numeric columns and TEa settings.")
+
+                    except Exception as e:
+                        st.error(f"Error during TEa analysis for all analytes: {e}")
+
+    except Exception as e:
+        st.error(f"⚠️ Could not read uploaded file: {e}")

@@ -14,15 +14,15 @@ except ImportError:
     units_list = ["mg/L", "μg/L", "ng/L", "mmol/L", "μmol/L", "Units"]
 
 # Page setup
-st.set_page_config(
-    page_title="Linearity",
-    page_icon="📏",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+# st.set_page_config(
+#     page_title="Linearity",
+#     page_icon="📏",
+#     layout="wide",
+#     initial_sidebar_state="expanded",
+# )
 apply_app_styling()
 
-st.title("📏 Linearity Analysis")
+st.header("📏 Linearity Analysis")
 
 # Documentation sections
 with st.expander("📘 About Linearity Assessment", expanded=True):
@@ -73,9 +73,8 @@ analysis_complete = False
 # ================================
 # 1. DATA UPLOAD AND PREVIEW
 # ================================
-st.header("📊 Data Upload and Preview")
 
-uploaded_file = st.file_uploader("Upload CSV file containing standard curve data", type=["csv"])
+uploaded_file = st.file_uploader("   ", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -83,9 +82,6 @@ if uploaded_file is not None:
     
     with st.expander("📖 Data Preview", expanded=True):
         st.dataframe(df, use_container_width=True)
-        st.info(f"Dataset contains {len(df)} rows and {len(df.columns)} columns")
-else:
-    st.info("Please upload a CSV file to begin analysis")
 
 # ================================
 # 2. ANALYSIS CONTROLS
@@ -763,15 +759,15 @@ if analysis_complete:
         performance_df = pd.DataFrame(performance_metrics)
         st.dataframe(performance_df, use_container_width=True)
 
-# Add custom CSS for better styling
-st.markdown("""
-<style>
-.stMetric > div > div > div > div {
-    background-color: #f0f2f6;
-    border: 2px solid #e1e5e9;
-    padding: 15px;
-    border-radius: 5px;
-    margin: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
+# # Add custom CSS for better styling
+# st.markdown("""
+# <style>
+# .stMetric > div > div > div > div {
+#     background-color: #f0f2f6;
+#     border: 2px solid #e1e5e9;
+#     padding: 15px;
+#     border-radius: 5px;
+#     margin: 10px;
+# }
+# </style>
+# """, unsafe_allow_html=True)

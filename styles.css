@@ -1,73 +1,83 @@
-/* styles.css */
-
-/* a couple of hints from zoe: 
-    don't change the base font - the streamlit font is good.
-    avoid changing padding and margins - streamlit handles that well and you don't so much.
-    stick to changing font sizes (be consistent!) and colours (pick 1/2 if you must, but again the base theme is good) */
-
-/* Base font family
-html, body, [class*="css"] {
-    font-family: 'Helvetica', 'Arial', sans-serif !important;
-   font-size: 18px !important; /* Increase base font size */
-} */
-
-
-/* General app background and text */
+/* Base Background and Text */
 body, .stApp {
-   background-color: #FFFFFF;
+   background-color: #ffffff;
    color: #1a1a1a;
 }
 
-/* Main content containers */
+/* Main content container */
 .block-container {
    padding: 2rem;
-   background-color: #FFFFFF;
+   background-color: #ffffff;
 }
 
 /* Headings */
 .stTitle, h1 {
-   font-size: 2.5rem !important;
-   color: #005f73;
+   font-size: 2.4rem !important;
+   color: #0a9396;
+   font-weight: 700;
 }
 
 .stHeader, h2 {
-   font-size: 1.75rem !important;
+   font-size: 1.8rem !important;
    color: #0077b6;
+   font-weight: 600;
 }
 
 .stSubheader, h3 {
-   font-size: 1.4rem !important;
+   font-size: 1.5rem !important;
    color: #023047;
+   font-weight: 500;
 }
 
 /* Paragraph text */
 .stMarkdown p, .stText {
-   font-size: 1.125rem !important;
+   font-size: 1.1rem !important;
 }
 
 /* Selectboxes and radio buttons */
 .stSelectbox>div, .stRadio>div {
-   background-color: rgba(255, 255, 255, 0.85);
+   background-color: rgba(255, 255, 255, 0.95);
    color: #005f73;
    font-size: 1rem;
+   border-radius: 6px;
+   transition: background-color 0.2s ease;
 }
 
 .stSelectbox>div:hover, .stRadio>div:hover {
-   background-color: #e0f7fa;
+   background-color: #d2f4f8;
 }
 
-/* Sidebar */
+/* Sidebar styling */
 .stSidebar {
    background-color: rgba(255, 255, 255, 0.95);
 }
 
-/* Sidebar header background (gradient) */
+/* Sidebar header gradient with embedded icon on left */
 .css-1d391kg {
-   background: linear-gradient(to top, #0077b6, #90e0ef, #ffffff);
+   background: linear-gradient(to right, #0077b6, #90e0ef);
+   color: white;
+   position: relative;
+   padding-left: 3rem !important;
 }
 
+/* Icon in top-left (navbar / header container) */
+.css-1d391kg::before {
+   content: '';
+   position: absolute;
+   top: 0.75rem;
+   left: 1rem;
+   width: 32px;
+   height: 32px;
+   background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg'); /* Replace with your icon */
+   background-size: contain;
+   background-repeat: no-repeat;
+   background-position: center;
+   opacity: 0.9;
+}
+
+/* Expander summary */
 div[data-testid="stExpander"] summary {
-   font-size: 200px;
+   font-size: 1.2rem;
    font-weight: bold;
    color: #1481ee;
    background-color: #f0f0f0;
@@ -75,24 +85,29 @@ div[data-testid="stExpander"] summary {
    border-radius: 5px;
    cursor: pointer;
 }
-/* Custom button styling */
+
+/* Custom Button Styling */
 .custom-button {
    padding: 0.6rem 1.2rem;
    font-size: 1.0rem;
-   border-radius: 10px;
+   border-radius: 12px;
    border: 1px solid #7c87ff;
    background-color: #5a7df1;
    color: white;
    font-weight: 600;
    cursor: pointer;
    margin: 0.25rem;
+   box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+   transition: all 0.3s ease;
 }
 
 .custom-button:hover {
    background-color: #7c87ff;
    border-color: #5a7df1;
+   transform: translateY(-1px);
 }
 
+/* Button container */
 .custom-container {
    display: flex;
    gap: 1rem;

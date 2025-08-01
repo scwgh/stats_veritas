@@ -112,7 +112,7 @@ def show_footer():
     st.markdown(
         """
         <footer>
-            <p style='text-align: center; font-size: 12px; line-height: 1.4; color: #555;'>
+            <p style='text-align: left; font-size: 6px; line-height: 1.4; color: #555;'>
                 &copy; Validation and Statistical Analysis App (2025). All rights reserved.
                 <br>
                 Licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" style='color: #4C9ED9;'>Apache 2.0 License</a>.

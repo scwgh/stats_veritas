@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 apply_app_styling()
-st.title("📚 Method Comparison")
+st.header("📚 Method Comparison")
 
 with st.expander("📘 Why perform Method Comparison?", expanded=True):
     st.markdown("""
@@ -59,3 +59,5 @@ with st.expander("📈 What type of regression? Deming vs. Passing-Bablok", expa
 
     These tools support analytical method validation, troubleshooting, and cross-platform harmonization.
     """)
+
+

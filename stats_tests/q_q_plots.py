@@ -5,20 +5,20 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import plotly.graph_objects as go
-from utils import apply_app_styling
+from utils import apply_app_styling, units_list, show_footer
 
 # Apply app-wide styling
 apply_app_styling()
 
 # Title and description
-st.title("📈 Q-Q Plot Generator")
+st.header("📈 Q-Q Plot Generator")
 st.markdown("""
 Quantile-Quantile (Q-Q) plots are used to visually assess whether a dataset follows a specified theoretical distribution—typically a normal distribution.  
 This plot compares the quantiles of your data against the quantiles of a standard normal distribution.  
 """)
 
-# File upload
-uploaded_file = st.file_uploader("📂 Upload your CSV file", type=["csv"])
+with st.expander("📤 Upload Your CSV File", expanded=True):
+    uploaded_file = st.file_uploader("   ", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -73,5 +73,5 @@ if uploaded_file is not None:
         """)
     else:
         st.error("No numeric columns found in the uploaded dataset.")
-else:
-    st.info("Upload a CSV file to generate a Q-Q plot.")
+        
+show_footer()
