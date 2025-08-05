@@ -8,6 +8,13 @@ from utils import apply_app_styling, units_list, show_footer
 
 apply_app_styling()
 
+st.set_page_config(
+    page_title="Shapiro-Wilk Normality Test",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 st.header("📊 Shapiro-Wilk Normality Test (by Material and Analyte)")
 
 with st.expander("📘 What is the Shapiro-Wilk Test?", expanded=True):
@@ -220,5 +227,3 @@ if uploaded_file is not None:
                     'W-Statistic': '{:.6f}',
                     'P-Value': '{:.6f}'
                 }))
-
-show_footer()

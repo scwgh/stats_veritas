@@ -9,6 +9,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
 apply_app_styling()
 st.header("📚 Method Comparison")
 
@@ -58,6 +59,8 @@ with st.expander("📈 What type of regression? Deming vs. Passing-Bablok", expa
     Often, it's beneficial to perform both analyses. If the results are similar, it provides greater confidence in the conclusion. If they differ, it signals that the data might violate the assumptions of one method, guiding you towards the more appropriate one for your specific dataset.
 
     These tools support analytical method validation, troubleshooting, and cross-platform harmonization.
+    
+    
     """)
 
 

@@ -2,6 +2,17 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+from utils import apply_app_styling, units_list
+
+# Set up the page styling
+apply_app_styling()
+
+st.set_page_config(
+    page_title="CUSUM Test",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 def cusum_analysis(data, target, k, h):
     deviations = data - target
@@ -18,7 +29,7 @@ def cusum_analysis(data, target, k, h):
 
 st.header("📈 CUSUM Test for Shift Detection")
 
-with st.expander("📘 What is the CUSUM Test?", expanded=False):
+with st.expander("📘 What is the CUSUM Test?", expanded=True):
     st.markdown("""
     The **Cumulative Sum (CUSUM)** test detects small and persistent shifts in process mean over time.
 

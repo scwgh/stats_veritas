@@ -7,9 +7,16 @@ from utils import apply_app_styling, units_list, show_footer
 
 apply_app_styling()
 
+st.set_page_config(
+    page_title="Mann-Whitney U Test",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 st.header("📊 Mann-Whitney U Test")
 
-with st.expander("📘 What is the Mann-Whitney U Test?"):
+with st.expander("📘 What is the Mann-Whitney U Test?", expanded=True):
     st.markdown("""
     The **Mann-Whitney U Test** is a non-parametric test used to compare whether there is a difference in the distribution of two independent groups.
     It does not assume normality and is an alternative to the independent samples t-test.""")
@@ -58,5 +65,3 @@ if uploaded_file is not None:
             st.success("There is no statistically significant difference between the two groups (fail to reject H0).")
     else:
         st.error("Please select a valid numeric column for the comparison.")
-
-show_footer()

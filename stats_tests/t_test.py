@@ -5,9 +5,16 @@ from utils import apply_app_styling, units_list, show_footer
 
 apply_app_styling()
 
-st.header("🧮 T-Test Analysis Between Analyzers (by Material)")
+st.set_page_config(
+    page_title="T-Test",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-with st.expander("📘 What is a T-Test?", expanded=False):
+st.header("📊 T-Test Analysis Between Analyzers (by Material)")
+
+with st.expander("📘 What is a T-Test?", expanded=True):
     st.markdown("""
     A **T-Test** compares the means of two groups and determines whether they are statistically different.
 

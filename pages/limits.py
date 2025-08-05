@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 apply_app_styling()
-st.title("♾️ Limits")
+st.header("♾️ Limits")
 
 # --- Method Explanation ---
 with st.expander("📘 What are limits?", expanded=True):

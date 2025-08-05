@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 from utils import apply_app_styling, units_list
 import io
 
-# Set up the page styling
 apply_app_styling()
 
 def grubbs_test(values, alpha=0.05):
@@ -637,274 +636,300 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
     )
     st.plotly_chart(fig4, use_container_width=True)
     
-    # Add outlier information if present
-    if is_outlier.any():
-        st.markdown("### 🔍 Outlier Information")
-        outlier_status = "Excluded from analysis and plots" if exclude_outliers else "Highlighted in plots but included in analysis"
-        st.info(f"**{sum(is_outlier)} outlier(s) detected** using Grubbs test (α = {alpha}). Status: {outlier_status}")
-        
-        if exclude_outliers:
-            # Enhanced explanation section for excluded outliers
-            with st.expander("📖 Why Were These Outliers Excluded?", expanded=True):
-                st.markdown(f"""
-                **{sum(is_outlier)} sample(s) were excluded from this analysis** based on the Grubbs test for outliers at significance level α = {alpha}.
-                
-                #### What is the Grubbs Test?
+
+    if exclude_outliers:
+        # Enhanced explanation section for excluded outliers
+        with st.expander("📖 Why Were These Outliers Excluded?", expanded=False):
+            st.markdown(f"""
+            **{sum(is_outlier)} sample(s) were excluded from this analysis** based on the {method_choice} method at significance level α = {alpha}.
+            
+            #### What is the {method_choice} Method?
+            """)
+            
+            # Dynamic explanation based on method used
+            if 'Grubbs' in method_choice:
+                st.markdown("""
                 The Grubbs test (also known as the extreme studentized deviate test) is a statistical method used to detect outliers in a univariate dataset. It tests whether the most extreme value in the dataset is significantly different from the rest of the data.
-                
-                #### Why Exclude Outliers in Bland-Altman Analysis?
-                - **Outliers can skew results**: Extreme values can artificially widen the limits of agreement, making two methods appear less comparable than they actually are
-                - **May represent measurement errors**: Outliers could indicate transcription errors, instrument malfunctions, or sample handling issues
-                - **Improve clinical relevance**: Excluding clear outliers can provide a more realistic assessment of typical method agreement
-                - **Statistical robustness**: Limits of agreement are more reliable when calculated from normally distributed differences
-                
-                #### What Does This Mean for Your Analysis?
-                - The **limits of agreement** are now calculated based on {N} samples instead of {len(vals1)} samples
-                - Statistical measures (mean difference, standard deviation, correlation) reflect the **typical performance** between methods
-                - Results are more representative of **routine analytical conditions**
-                - The excluded samples should be **investigated separately** to determine the cause of the extreme differences
-                
-                #### Excluded Sample Details:
                 """)
-                
-                # Show excluded samples with detailed information
-                excluded_indices = np.where(is_outlier)[0]
-                excluded_details = []
-                for idx in excluded_indices:
-                    sample_id = sample_ids[idx]
-                    val1 = vals1[idx]
-                    val2 = vals2[idx]
-                    diff = diffs[idx]
-                    mean_val = means[idx]
-                    
-                    # Calculate how many standard deviations from mean
-                    z_score = abs(diff - np.mean(diffs)) / np.std(diffs, ddof=1)
-                    
-                    excluded_details.append({
-                        'Sample ID': sample_id,
-                        f'{analyzer_1}': round(val1, 3),
-                        f'{analyzer_2}': round(val2, 3),
-                        'Difference': round(diff, 3),
-                        'Mean': round(mean_val, 3),
-                        'Z-Score': round(z_score, 2),
-                        'Deviation': f"{z_score:.1f}σ from mean"
-                    })
-                
-                excluded_df = pd.DataFrame(excluded_details)
-                st.dataframe(excluded_df, use_container_width=True, hide_index=True)
-                
-                st.markdown(f"""
-                #### Recommendations:
-                
-                1. **Investigate excluded samples**: Review the measurement process for samples {', '.join(map(str, excluded_samples))}
-                2. **Check for errors**: Verify data entry, sample handling, and instrument calibration
-                3. **Consider clinical context**: Determine if extreme differences have clinical significance
-                4. **Document decisions**: Record why outliers were excluded for audit purposes
-                5. **Consider replication**: If possible, re-analyze excluded samples to confirm results
-                
-                #### Statistical Impact:
-                - **Before exclusion**: N = {len(vals1)}, Mean difference = {np.mean(diffs):.3f}, SD = {np.std(diffs, ddof=1):.3f}
-                - **After exclusion**: N = {N}, Mean difference = {mean_diff:.3f}, SD = {std_diff:.3f}
-                - **Change in precision**: {((np.std(diffs, ddof=1) - std_diff) / np.std(diffs, ddof=1) * 100):.1f}% reduction in standard deviation
-                
-                ---
-                *Note: Outlier exclusion should be based on scientific rationale, not just statistical convenience. Always document and justify exclusion decisions.*
+            elif 'Limits Only' in method_choice:
+                st.markdown("""
+                The Limits Only method identifies any data points that fall outside ±1.96 standard deviations from the mean difference. This is based on the assumption that differences follow a normal distribution.
+                """)
+            elif 'Combined' in method_choice:
+                st.markdown("""
+                The Combined method first applies the iterative Grubbs test, then recalculates limits of agreement and identifies any remaining points outside the new ±1.96 standard deviation limits.
                 """)
             
-            st.warning(f"⚠️ Analysis performed with {sum(is_outlier)} excluded sample(s): {', '.join(map(str, excluded_samples))}")
-        else:
-            # Brief explanation when outliers are highlighted but not excluded
+            st.markdown("""
+            #### Why Exclude Outliers in Bland-Altman Analysis?
+            - **Outliers can skew results**: Extreme values can artificially widen the limits of agreement, making two methods appear less comparable than they actually are
+            - **May represent measurement errors**: Outliers could indicate transcription errors, instrument malfunctions, or sample handling issues
+            - **Improve clinical relevance**: Excluding clear outliers can provide a more realistic assessment of typical method agreement
+            - **Statistical robustness**: Limits of agreement are more reliable when calculated from normally distributed differences
+            
+            #### What Does This Mean for Your Analysis?
+            """)
+            
+            # Calculate original statistics for comparison
+            original_n = len(vals1)
+            original_mean_diff = np.mean(diffs)
+            original_std_diff = np.std(diffs, ddof=1)
+            
+            st.markdown(f"""
+            - The **limits of agreement** are now calculated based on {N} samples instead of {original_n} samples
+            - Statistical measures (mean difference, standard deviation, correlation) reflect the **typical performance** between methods
+            - Results are more representative of **routine analytical conditions**
+            - The excluded samples should be **investigated separately** to determine the cause of the extreme differences
+            """)
+            
+            # Show excluded samples with detailed information
+            excluded_indices = np.where(is_outlier)[0]
+            excluded_details = []
+            
+            # Get excluded sample IDs safely
+            excluded_sample_ids = []
+            
+            for idx in excluded_indices:
+                sample_id = sample_ids[idx]
+                excluded_sample_ids.append(sample_id)
+                val1 = vals1[idx]
+                val2 = vals2[idx]
+                diff = diffs[idx]
+                mean_val = means[idx]
+                
+                # Calculate how many standard deviations from mean (using original data)
+                z_score = abs(diff - original_mean_diff) / original_std_diff
+                
+                excluded_details.append({
+                    'Sample ID': sample_id,
+                    f'{analyzer_1}': round(val1, 3),
+                    f'{analyzer_2}': round(val2, 3),
+                    'Difference': round(diff, 3),
+                    'Mean': round(mean_val, 3),
+                    'Z-Score': round(z_score, 2),
+                    'Deviation': f"{z_score:.1f}σ from mean"
+                })
+            
+            if excluded_details:  # Only show table if there are excluded samples
+                excluded_df = pd.DataFrame(excluded_details)
+                st.dataframe(excluded_df, use_container_width=True, hide_index=True)
+            
+            st.markdown(f"""
+            #### Excluded Sample Details:
+            The following sample(s) were identified as outliers: **{', '.join(map(str, excluded_sample_ids))}**
+            
+            #### Recommendations:
+            
+            1. **Investigate excluded samples**: Review the measurement process for samples {', '.join(map(str, excluded_sample_ids))}
+            2. **Check for errors**: Verify data entry, sample handling, and instrument calibration
+            3. **Consider clinical context**: Determine if extreme differences have clinical significance
+            4. **Document decisions**: Record why outliers were excluded for audit purposes
+            5. **Consider replication**: If possible, re-analyze excluded samples to confirm results
+            
+            #### Statistical Impact:
+            - **Before exclusion**: N = {original_n}, Mean difference = {original_mean_diff:.3f}, SD = {original_std_diff:.3f}
+            - **After exclusion**: N = {N}, Mean difference = {mean_diff:.3f}, SD = {std_diff:.3f}
+            - **Change in precision**: {((original_std_diff - std_diff) / original_std_diff * 100):.1f}% reduction in standard deviation
+            
+            ---
+            *Note: Outlier exclusion should be based on scientific rationale, not just statistical convenience. Always document and justify exclusion decisions.*
+            """)
+
+    else:
+        # Brief explanation when outliers are highlighted but not excluded
+        if is_outlier.any():
+            excluded_sample_ids = sample_ids[is_outlier].tolist()
             st.info(f"""
             **Outliers are highlighted in red squares (🟥) but remain included in the analysis.**
             
             These {sum(is_outlier)} sample(s) show extreme differences that may warrant investigation:
-            {', '.join(map(str, sample_ids[is_outlier]))}
+            {', '.join(map(str, excluded_sample_ids))}
             
             Consider checking the "Exclude outliers from analysis" option if these represent measurement errors or non-representative conditions.
             """)
-    else:
-        st.success("✅ No outliers detected using Grubbs test.")
+        else:
+            st.success("✅ No outliers detected using the selected method.")
+
+
 
     # --- Summary Statistics ---
-    st.markdown("### 📊 Statistical Summary")
+    with st.expander("📊 Summary Statistics", expanded=True):
     
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric("Number of Samples", N)
-        st.metric("Mean Difference", f"{mean_diff:.3f} {units}")
-        st.metric("SD of Differences", f"{std_diff:.3f} {units}")
-    
-    with col2:
-        st.metric("Lower LoA", f"{loa_lower:.3f} {units}")
-        st.metric("Upper LoA", f"{loa_upper:.3f} {units}")
-        st.metric("p-value (paired t-test)", f"{p_val:.3f}")
-    
-    with col3:
-        st.metric("Correlation (R²)", f"{r_value**2:.3f}")
-        st.metric("Slope", f"{slope:.3f}")
-        st.metric("Intercept", f"{intercept:.3f}")
-    
-    # Add outlier information if present
-    if is_outlier.any():
-        st.markdown("### 🔍 Outlier Information")
-        outlier_status = "Excluded from analysis and plots" if exclude_outliers else "Highlighted in plots but included in analysis"
-        st.info(f"**{sum(is_outlier)} outlier(s) detected** using Grubbs test (α = {alpha}). Status: {outlier_status}")
-        
-        if exclude_outliers:
-            st.warning(f"Excluded samples: {', '.join(map(str, excluded_samples))}")
-    
-    # --- Full Summary Table: All Materials × All Analytes ---
-    st.markdown("### 📋 Complete Analysis Summary")
-    
-    summary_table = []
-    
-    for material in df['Material'].unique():
-        analytes = df.columns[7:]
-        
-        for analyte in analytes:
-            try:
-                # Get analyzers for this material
-                material_data = df[df['Material'] == material]
-                analyzers = material_data['Analyser'].unique()
-                
-                if len(analyzers) < 2:
-                    continue
-                
-                # Use first two analyzers
-                analyzer1, analyzer2 = analyzers[:2]
-                
-                # Prepare matched data
-                matched_data = prepare_matched_data(df, material, analyte, analyzer1, analyzer2)
-                
-                if len(matched_data) == 0:
-                    continue
-                
-                # Calculate statistics
-                vals1 = matched_data[f'{analyte}_1']
-                vals2 = matched_data[f'{analyte}_2']
-                diffs = vals1 - vals2
-                
-                # Apply Grubbs test for outlier detection
-                is_outlier_summary = identify_outliers_beyond_limits(diffs.values, np.mean(diffs), np.std(diffs, ddof=1), alpha, 'limits_only')
-                n_outliers = sum(is_outlier_summary)
-                
-                # Calculate stats with and without outliers
-                if exclude_outliers and is_outlier_summary.any():
-                    normal_mask = ~is_outlier_summary
-                    vals1_clean = vals1.values[normal_mask]
-                    vals2_clean = vals2.values[normal_mask]
-                    diffs_clean = vals1_clean - vals2_clean
-                    
-                    mean_diff = np.mean(diffs_clean)
-                    std_diff = np.std(diffs_clean, ddof=1)
-                    n_samples = len(diffs_clean)
-                    _, p_val = stats.ttest_rel(vals1_clean, vals2_clean)
-                else:
-                    mean_diff = np.mean(diffs)
-                    std_diff = np.std(diffs, ddof=1)
-                    n_samples = len(diffs)
-                    _, p_val = stats.ttest_rel(vals1, vals2)
-                
-                loa_upper = mean_diff + 1.96 * std_diff
-                loa_lower = mean_diff - 1.96 * std_diff
-                
-                # Calculate correlation
-                if exclude_outliers and is_outlier_summary.any():
-                    slope, intercept, r_value, _, _ = stats.linregress(vals1_clean, vals2_clean)
-                else:
-                    slope, intercept, r_value, _, _ = stats.linregress(vals1, vals2)
-                
-                summary_table.append({
-                    'Material': material,
-                    'Analyte': analyte,
-                    'Analyzer 1': analyzer1,
-                    'Analyzer 2': analyzer2,
-                    'N Samples': n_samples,
-                    'N Outliers': n_outliers,
-                    'Mean Difference': round(mean_diff, 3),
-                    'SD of Differences': round(std_diff, 3),
-                    'LoA Lower': round(loa_lower, 3),
-                    'LoA Upper': round(loa_upper, 3),
-                    'R²': round(r_value**2, 3),
-                    'p-value': round(p_val, 3)
-                })
-                
-            except Exception as e:
-                st.warning(f"⚠️ Could not process {material} - {analyte}: {str(e)}")
-                continue
-    
-    if summary_table:
-        summary_df = pd.DataFrame(summary_table)
-        st.dataframe(summary_df, use_container_width=True, hide_index=True)
-        
-        # Add download button for summary table
-        csv_buffer = io.StringIO()
-        summary_df.to_csv(csv_buffer, index=False)
-        csv_data = csv_buffer.getvalue()
-        
-        st.download_button(
-            label="📥 Download Summary Table as CSV",
-            data=csv_data,
-            file_name=f"bland_altman_summary_{material_type}_{selected_analyte}.csv",
-            mime="text/csv"
-        )
-        
-        # Display key insights
-        st.markdown("### 🔍 Key Insights")
-        
-        # Calculate some summary statistics across all combinations
-        total_combinations = len(summary_df)
-        significant_differences = len(summary_df[summary_df['p-value'] < 0.05])
-        high_correlation = len(summary_df[summary_df['R²'] > 0.9])
-        total_outliers = summary_df['N Outliers'].sum()
-        
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("Total Combinations", total_combinations)
+            st.metric("Number of Samples", N)
+            st.metric("Mean Difference", f"{mean_diff:.3f} {units}")
+            st.metric("SD of Differences", f"{std_diff:.3f} {units}")
         
         with col2:
-            st.metric("Significant Differences", f"{significant_differences}/{total_combinations}")
+            st.metric("Lower LoA", f"{loa_lower:.3f} {units}")
+            st.metric("Upper LoA", f"{loa_upper:.3f} {units}")
+            st.metric("p-value (paired t-test)", f"{p_val:.3f}")
         
         with col3:
-            st.metric("High Correlation (R² > 0.9)", f"{high_correlation}/{total_combinations}")
+            st.metric("Correlation (R²)", f"{r_value**2:.3f}")
+            st.metric("Slope", f"{slope:.3f}")
+            st.metric("Intercept", f"{intercept:.3f}")
         
-        with col4:
-            st.metric("Total Outliers Detected", total_outliers)
         
-        # Show materials/analytes with concerning results
-        concerning_results = summary_df[
-            (summary_df['p-value'] < 0.05) | 
-            (summary_df['R²'] < 0.8) | 
-            (summary_df['N Outliers'] > 0)
-        ]
+        # --- Full Summary Table: All Materials × All Analytes ---
+        st.subheader("📋 Complete Analysis Summary")
         
-        if len(concerning_results) > 0:
-            st.markdown("#### ⚠️ Attention Required")
-            st.markdown("*The following combinations show significant differences, low correlation, or outliers:*")
+        summary_table = []
+        
+        for material in df['Material'].unique():
+            analytes = df.columns[7:]
             
-            # Create a more focused display
-            concerning_display = concerning_results[['Material', 'Analyte', 'Analyzer 1', 'Analyzer 2', 
-                                                   'p-value', 'R²', 'N Outliers']].copy()
+            for analyte in analytes:
+                try:
+                    # Get analyzers for this material
+                    material_data = df[df['Material'] == material]
+                    analyzers = material_data['Analyser'].unique()
+                    
+                    if len(analyzers) < 2:
+                        continue
+                    
+                    # Use first two analyzers
+                    analyzer1, analyzer2 = analyzers[:2]
+                    
+                    # Prepare matched data
+                    matched_data = prepare_matched_data(df, material, analyte, analyzer1, analyzer2)
+                    
+                    if len(matched_data) == 0:
+                        continue
+                    
+                    # Calculate statistics
+                    vals1 = matched_data[f'{analyte}_1']
+                    vals2 = matched_data[f'{analyte}_2']
+                    diffs = vals1 - vals2
+                    
+                    # Apply Grubbs test for outlier detection
+                    is_outlier_summary = identify_outliers_beyond_limits(diffs.values, np.mean(diffs), np.std(diffs, ddof=1), alpha, 'limits_only')
+                    n_outliers = sum(is_outlier_summary)
+                    
+                    # Calculate stats with and without outliers
+                    if exclude_outliers and is_outlier_summary.any():
+                        normal_mask = ~is_outlier_summary
+                        vals1_clean = vals1.values[normal_mask]
+                        vals2_clean = vals2.values[normal_mask]
+                        diffs_clean = vals1_clean - vals2_clean
+                        
+                        mean_diff = np.mean(diffs_clean)
+                        std_diff = np.std(diffs_clean, ddof=1)
+                        n_samples = len(diffs_clean)
+                        _, p_val = stats.ttest_rel(vals1_clean, vals2_clean)
+                    else:
+                        mean_diff = np.mean(diffs)
+                        std_diff = np.std(diffs, ddof=1)
+                        n_samples = len(diffs)
+                        _, p_val = stats.ttest_rel(vals1, vals2)
+                    
+                    loa_upper = mean_diff + 1.96 * std_diff
+                    loa_lower = mean_diff - 1.96 * std_diff
+                    
+                    # Calculate correlation
+                    if exclude_outliers and is_outlier_summary.any():
+                        slope, intercept, r_value, _, _ = stats.linregress(vals1_clean, vals2_clean)
+                    else:
+                        slope, intercept, r_value, _, _ = stats.linregress(vals1, vals2)
+                    
+                    summary_table.append({
+                        'Material': material,
+                        'Analyte': analyte,
+                        'Analyzer 1': analyzer1,
+                        'Analyzer 2': analyzer2,
+                        'N Samples': n_samples,
+                        'N Outliers': n_outliers,
+                        'Mean Difference': round(mean_diff, 3),
+                        'SD of Differences': round(std_diff, 3),
+                        'LoA Lower': round(loa_lower, 3),
+                        'LoA Upper': round(loa_upper, 3),
+                        'R²': round(r_value**2, 3),
+                        'p-value': round(p_val, 3)
+                    })
+                    
+                except Exception as e:
+                    st.warning(f"⚠️ Could not process {material} - {analyte}: {str(e)}")
+                    continue
+        
+        if summary_table:
+            summary_df = pd.DataFrame(summary_table)
+            st.dataframe(summary_df, use_container_width=True, hide_index=True)
             
-            # Add interpretation column
-            def interpret_concern(row):
-                concerns = []
-                if row['R²'] < 0.8:
-                    concerns.append("Correlation score <0.8 - further investigation suggested.")
-                if row['N Outliers'] > 0:
-                    concerns.append(f"{row['N Outliers']} outlier(s)")
-                return "; ".join(concerns)
+            # Add download button for summary table
+            csv_buffer = io.StringIO()
+            summary_df.to_csv(csv_buffer, index=False)
+            csv_data = csv_buffer.getvalue()
             
-            concerning_display['Concerns'] = concerning_results.apply(interpret_concern, axis=1)
-            st.dataframe(concerning_display, use_container_width=True, hide_index=True)
+            st.download_button(
+                label="📥 Download Summary Table as CSV",
+                data=csv_data,
+                file_name=f"bland_altman_summary_{material_type}_{selected_analyte}.csv",
+                mime="text/csv"
+            )
+            
+            # Display key insights
+            st.markdown("### 🔍 Key Insights")
+            
+            # Calculate some summary statistics across all combinations
+            total_combinations = len(summary_df)
+            significant_differences = len(summary_df[summary_df['p-value'] < 0.05])
+            high_correlation = len(summary_df[summary_df['R²'] > 0.9])
+            total_outliers = summary_df['N Outliers'].sum()
+            
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("Total Combinations", total_combinations)
+            
+            with col2:
+                st.metric("Significant Differences", f"{significant_differences}/{total_combinations}")
+            
+            with col3:
+                st.metric("High Correlation (R² > 0.9)", f"{high_correlation}/{total_combinations}")
+            
+            with col4:
+                st.metric("Total Outliers Detected", total_outliers)
+            
+            # Show materials/analytes with concerning results
+            concerning_results = summary_df[
+                (summary_df['p-value'] < 0.05) | 
+                (summary_df['R²'] < 0.8) | 
+                (summary_df['N Outliers'] > 0)
+            ]
+            
+            if len(concerning_results) > 0:
+                st.markdown("#### ⚠️ Attention Required")
+                st.markdown("*The following combinations show significant differences, low correlation, or outliers:*")
+                
+                # Create a more focused display
+                concerning_display = concerning_results[['Material', 'Analyte', 'Analyzer 1', 'Analyzer 2', 
+                                                    'p-value', 'R²', 'N Outliers']].copy()
+                
+                # Add interpretation column
+                def interpret_concern(row):
+                    concerns = []
+                    if row['R²'] < 0.8:
+                        concerns.append("Correlation score <0.8 - further investigation suggested.")
+                    if row['N Outliers'] > 0:
+                        concerns.append(f"{row['N Outliers']} outlier(s)")
+                    return "; ".join(concerns)
+                
+                concerning_display['Concerns'] = concerning_results.apply(interpret_concern, axis=1)
+                st.dataframe(concerning_display, use_container_width=True, hide_index=True)
+            else:
+                st.success("✅ All analyzer combinations show good agreement!")
+        
         else:
-            st.success("✅ All analyzer combinations show good agreement!")
-    
-    else:
-        st.warning("No valid combinations found for analysis. Please check your data format and ensure there are matching samples between analyzers.")
+            st.warning("No valid combinations found for analysis. Please check your data format and ensure there are matching samples between analyzers.")
 
+st.set_page_config(
+    page_title="Bland-Altmann Analysis",
+    page_icon="🥼",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 st.header("🥼 Bland-Altman Analysis")
 with st.expander("📘 What is Bland-Altman Analysis?", expanded=True):

@@ -9,9 +9,9 @@ from utils import apply_app_styling, show_footer
 # Home 
 home_page = st.Page("home.py", title="Home")
 templates_page = st.Page("pages/templates_home.py", title="Templates")
+test_selector_page = st.Page("pages/test_selector.py", title="Choose a test")
 # support_page = st.Page("support.py", title="Contact and Support")
 # Method Comparison
-test_selector_page = st.Page("method_comparison/test_selector.py", title="Choose a test")
 method_comparison_page = st.Page("method_comparison/overview_mc.py", title="Overview")
 one_way_anova_page = st.Page("method_comparison/anova/one_way_anova.py", title="One-Way ANOVA")
 multi_way_anova_page = st.Page("method_comparison/anova/multi_way_anova.py", title="Multi-Way ANOVA")
@@ -24,6 +24,8 @@ passing_bablok_page = st.Page("method_comparison/passing_bablok.py", title="Pass
 linearity_page = st.Page("regression/linearity.py", title="Linearity Analysis")
 linear_regression_page = st.Page("regression/linear_regression.py", title="Linear Regression")
 poly_regression_page = st.Page("regression/polynomial_regression.py", title="Polynomial Regression")
+log_regression_page = st.Page("regression/logistic_regression.py", title="Logistic Regression")
+ridge_regression_page = st.Page("regression/ridge_lasso_regression.py", title="Ridge and Lasso Regression")
 # Imprecision
 imprecision_page = st.Page("pages/imprecision.py", title="Imprecision Analysis")
 # Statistical tests
@@ -51,12 +53,12 @@ reference_intervals_page = st.Page("pages/reference_intervals.py", title="Refere
 
 # Groups
 pg = st.navigation({
-    "Main": [home_page, templates_page],
+    "Main": [home_page, templates_page, test_selector_page],
     "Imprecision": [imprecision_page],
     "Limits": [limits_page],
-    "Linearity": [linearity_page, poly_regression_page, linear_regression_page],
-    "Method Comparison": [method_comparison_page, 
-                          test_selector_page,
+    "Linearity": [linearity_page, poly_regression_page, linear_regression_page, 
+                  log_regression_page, ridge_regression_page],
+    "Method Comparison": [method_comparison_page,
                           bland_altman_page, deming_page, 
                           passing_bablok_page, one_way_anova_page, 
                           two_crossed_anova, two_nested_anova, multi_way_anova_page],

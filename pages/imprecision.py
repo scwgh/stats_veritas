@@ -11,23 +11,19 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from itertools import combinations
 from datetime import datetime
-
 from utils import apply_app_styling, check_westgard_rules, grubbs_test, units_list
 
-# Set up the page config
 st.set_page_config(
     page_title="Imprecision Analysis",
-    page_icon="📉",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 apply_app_styling()
 
-# --- Page Setup ---
-st.title("📊 Imprecision Analysis (with Westgard and Grubbs' tests)")
+st.header("📊 Imprecision Analysis (with Westgard and Grubbs' tests)")
 
-# --- Method Explanation ---
 with st.expander("📘 What is Imprecision Analysis?", expanded=True):
     st.markdown("""
     Imprecision analysis is used to evaluate random error associated with a measurement. Measurement of laboratory analytical error falls into two main categories: \n "***systematic error***" and "***random error***". 
@@ -50,21 +46,21 @@ with st.expander("📘 What is Imprecision Analysis?", expanded=True):
     """, unsafe_allow_html=True)
 
 with st.expander("📘 Imprecision Metrics Explained:", expanded=False):
-    st.markdown("### 📐 Imprecision Metrics Explained")
+    st.markdown("###### 📐 Imprecision Metrics Explained")
     st.markdown("**🔹 Standard Deviation (SD)**: A measure of the dispersion of individual measurements around the mean. A low standard deviation suggests values are close to the mean; while a high standard deviation indicates values are spread over a wider range. SD is often used to determine if a value is an outlier.")
     st.latex(r'''\text{SD} = \sqrt{ \frac{1}{n - 1} \sum_{i=1}^{n} (x_i - \bar{x})^2 }''')
     st.markdown("**🔹 Coefficient of Variation (CV)**: The coefficient of variation (CV) is defined as a ratio of standard deviation to mean. CV should only be used for data which has a meaningful zero and therefore can be applied as a relative comparison between two measurements. It may also be defined as the standard deviation expressed as a percentage of the mean.")
     st.latex(r'''\text{CV}(\%) = \left( \frac{\text{SD}}{\bar{x}} \right) \times 100''')
     st.markdown("**🔹 Bias**: Bias is expressed as a percentage of the mean measured value versus the expected value.")
     st.latex(r'''\text{Bias (\%)} = \left( \frac{\bar{x} - \mu}{\mu} \right) \times 100''')
-    tab_westgard, tab_grubbs, tab_welch = st.tabs(["Westgard Rules", "Grubbs' Test", "Welch's ANOVA"])
+    tab_westgard, tab_grubbs = st.tabs(["Westgard Rules", "Grubbs' Test"])
 
     with tab_westgard:
         subtab_expl, subtab_violations = st.tabs(["🤔 What are Westgard Rules?", "❌ Westgard Rules Violations"])
         
         with subtab_expl:
             st.markdown("""
-            ### 🤔 What are Westgard Rules?
+            ##### 🤔 What are Westgard Rules?
             - The **Westgard Rules** are a set of statistical criteria used to monitor analytical performance and detect potential errors in quality control (QC) data. Each rule examines patterns or outliers based on the mean and standard deviation (SD) of control measurements. 
             - The app allows you to apply Westgard rules to your data and visualize any violations using a red cross (❌).
             - The rules are applied to the selected analyte and will be displayed in the plot.
@@ -86,42 +82,27 @@ with st.expander("📘 Imprecision Metrics Explained:", expanded=False):
             """)
     with tab_grubbs:
         st.markdown("""
-        ### 🟪 Grubbs’ Test for outlier identification:
+        ###### 🟪 Grubbs’ Test for outlier identification:
         - **Grubb's test**, also known as Extreme Studentized Deviate (ESD) test, is used to identify outliers which are statistically significant from a univariate data set.
-        - Use the checkbox to:
-            - **Apply Grubbs’ Test** to identify potential outliers - outliers will be marked with a purple square (🟪).
-            - **Exclude** flagged outliers from calculations. Any datapoints identified as outliers will be removed from subsequent calculations and intra-well, intra-batch, and inter-batch imprecision will be recalculated.
+        - The primary assumption of the Grubbs' test is  that the data is normally distributed. When applying a Grubbs' test, the null hypothesis states that there are no outliers in the dataset. 
+        - The G statistic is calculated as the ratio of the maximum absolute deviation from the mean to the standard deviation of the sample. If this G statistic exceeds a critical value from the Grubbs' distribution table, the point is considered a significant outlier.
         """)
-    with tab_welch:
+        st.latex(r"""
+            G = \frac{\max{\left| x_i - \bar{x} \right|}}{s}
+            """)
+            
         st.markdown("""
-        ### 📝 Welch's One-Way ANOVA:
-        - Welch's ANOVA is a statistical test used to determine if there are significant differences between the means of three or more groups that may have different variances.
-        - The app will perform Welch's ANOVA on the selected analyte and display the results.
-        - The results will include the F-statistic and p-value, which indicate whether there are significant differences between the means of the groups.
-        - A p-value less than 0.05 indicates a statistically significant difference between the means of the groups.
+        - The value of G is compared to a critical value from the Grubbs' distribution table. If G exceeds the critical value, the point is considered a significant outlier.
+        - Any outliers which are flagged using the test here will be marked with a purple square (🟪). Tick the box to exclude outliers - any outliers identified will be removed from subsequent calculations and intra-well, intra-batch, and inter-batch imprecision will be recalculated.
         """)
-# with st.expander("ℹ️ What is Grubbs' Test?"):
-#     st.markdown("""
-#     **Grubbs' Test** is a statistical test used to detect outliers in a univariate dataset.  
-#     It tests whether the extreme value in the dataset is significantly different from the rest of the data.
-    
-#     The Grubbs' test statistic is defined as:
-#     """)
-    
-#     st.latex(r"""
-#     G = \frac{\max{\left| x_i - \bar{x} \right|}}{s}
-#     """)
-    
-#     st.markdown("""
-#     Where:
-#     - \( x_i \) is an individual observation  
-#     - \( \bar{x} \) is the sample mean  
-#     - \( s \) is the sample standard deviation  
-
-#     The value of \( G \) is compared to a critical value from the Grubbs' distribution table.  
-#     If \( G \) exceeds the critical value, the point is considered a significant outlier.
-#     """)
-
+    # with tab_welch:
+    #     st.markdown("""
+    #     ##### 📝 Welch's One-Way ANOVA:
+    #     - Welch's ANOVA is a statistical test used to determine if there are significant differences between the means of three or more groups that may have different variances.
+    #     - The app will perform Welch's ANOVA on the selected analyte and display the results.
+    #     - The results will include the F-statistic and p-value, which indicate whether there are significant differences between the means of the groups.
+    #     - A p-value less than 0.05 indicates a statistically significant difference between the means of the groups.
+    #     """)
 
 # --- Instructions ---
 with st.expander("📘 Instructions:", expanded=False):

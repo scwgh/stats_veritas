@@ -8,7 +8,7 @@ apply_app_styling()
 
 st.header("🧪 Levene’s Test for Equality of Variances")
 
-with st.expander("📘 What is Levene’s Test?", expanded=False):
+with st.expander("📘 What is Levene’s Test?", expanded=True):
     st.write("""
         Levene’s Test is used to check whether multiple groups have **equal variances**.  
         It's an important assumption for parametric tests like ANOVA.

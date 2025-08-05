@@ -2,10 +2,21 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from scipy.stats import bartlett
+from utils import apply_app_styling, units_list
+
+# Set up the page styling
+apply_app_styling()
+
+st.set_page_config(
+    page_title="Bartlett Test",
+    page_icon="📏",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 st.header("📏 Bartlett’s Test for Equal Variances")
 
-with st.expander("📘 What is Bartlett’s Test?", expanded=False):
+with st.expander("📘 What is Bartlett’s Test?", expanded=True):
     st.write("""
         Bartlett’s test is used to assess if **multiple samples have equal variances**.
         Equal variances across samples is called "_homogeneity of variances_". Some statistical tests, for example, the analysis of variance (ANOVA), assumes that the variances are equal across groups or samples. Therefore, the Bartlett test can be used to verify this assumption. 

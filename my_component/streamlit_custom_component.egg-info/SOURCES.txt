@@ -1,0 +1,9 @@
+LICENSE
+MANIFEST.in
+README.md
+setup.py
+streamlit_custom_component.egg-info/PKG-INFO
+streamlit_custom_component.egg-info/SOURCES.txt
+streamlit_custom_component.egg-info/dependency_links.txt
+streamlit_custom_component.egg-info/requires.txt
+streamlit_custom_component.egg-info/top_level.txt

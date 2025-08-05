@@ -3,6 +3,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
+from utils import apply_app_styling, units_list, show_footer
+
+apply_app_styling()
+
+st.set_page_config(
+    page_title="P-P Plot",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 
 def pp_plot(data, ax, title="P–P Plot"):
     """Generate a P–P plot comparing sample data to a normal distribution."""
@@ -27,7 +38,7 @@ def pp_plot(data, ax, title="P–P Plot"):
 
 st.header("📈 P–P Plot (Probability–Probability Plot)")
 
-with st.expander("📘 What is a P–P Plot?", expanded=False):
+with st.expander("📘 What is a P–P Plot?", expanded=True):
     st.write("""
         A **P–P plot** compares the cumulative distribution of your data against a theoretical distribution (e.g. normal).
         If the data follows the distribution well, points will lie along the 45° diagonal line.

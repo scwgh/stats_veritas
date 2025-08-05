@@ -2,11 +2,20 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from scipy.stats import anderson
+from utils import apply_app_styling, units_list
 
+apply_app_styling() 
+
+st.set_page_config(
+    page_title="Anderson-Darling Test",
+    page_icon="📏",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 st.header("📏 Anderson-Darling Test for Normality")
 
-with st.expander("📘 What is the Anderson-Darling Test?", expanded=False):
+with st.expander("📘 What is the Anderson-Darling Test?", expanded=True):
     st.write("""
     The **Anderson-Darling test** evaluates whether a sample comes from a normal distribution.
     It returns a test statistic and critical values at significance levels: 15%, 10%, 5%, 2.5%, and 1%.

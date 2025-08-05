@@ -6,6 +6,14 @@ from utils import apply_app_styling, units_list, show_footer
 
 apply_app_styling()
 
+st.set_page_config(
+    page_title="Total Alowable Error (TEa)",
+    page_icon="🧮",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
 st.header("🧮 Total Allowable Error (TEa) Analysis")
 
 with st.expander("📘 What is TEa?", expanded=True):

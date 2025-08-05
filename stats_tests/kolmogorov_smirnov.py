@@ -7,6 +7,17 @@ import pandas as pd
 import numpy as np
 from scipy.stats import kstest, norm
 import plotly.graph_objects as go
+from utils import apply_app_styling, units_list
+
+# Set up the page styling
+apply_app_styling()
+
+st.set_page_config(
+    page_title="Kolmogoriv-Smirnov Test",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 def plot_ks_test(data: pd.Series):
     
@@ -74,7 +85,7 @@ with st.expander("📘 Instructions"):
     """)
 
 with st.expander("📤 Upload Your CSV File", expanded=True):
-    uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+    uploaded_file = st.file_uploader("   ", type=["csv"])
 
 if uploaded_file is not None:
     try:

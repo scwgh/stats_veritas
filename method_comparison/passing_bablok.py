@@ -517,8 +517,15 @@ def plot_regression_plotly(analyte, x_data, y_data, sample_ids, slope, intercept
             name='Line of Identity (y = x)'
         ))
     
-    # Add equation and R² to legend
+    # Add regression line equation and R² to legend
     n_points = np.sum(normal_mask) if remove_outliers and np.any(outlier_mask) else len(x_data)
+
+    # Format the equation more clearly
+    if intercept >= 0:
+        equation = f"y = {slope:.4f}x + {intercept:.4f}"
+    else:
+        equation = f"y = {slope:.4f}x - {abs(intercept):.4f}"
+
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
         mode='markers',
@@ -769,10 +776,10 @@ def passing_bablok():
                     slope_status = "✅ Excellent"
                     slope_color = "green"
                 elif 0.85 <= slope_val <= 1.10:
-                    slope_status = "😐 Acceptable"
+                    slope_status = "👍 Acceptable"
                     slope_color = "orange"
                 elif 0.75 <= slope_val <= 0.85:
-                    slope_status = "⚠️ Acceptable but further investigation warran"
+                    slope_status = "⚠️ Acceptable but further investigation warranted"
                     slope_color = "orange"
                 else:
                     slope_status = "❌ Poor"
@@ -786,7 +793,7 @@ def passing_bablok():
                     intercept_status = "✅ Excellent"
                     intercept_color = "green"
                 elif relative_intercept < 0.10:
-                    intercept_status = "⚠️ Acceptable"
+                    intercept_status = "👍 Acceptable"
                     intercept_color = "orange"
                 else:
                     intercept_status = "❌ Poor"
@@ -797,10 +804,10 @@ def passing_bablok():
                     r2_status = "✅ Excellent"
                     r2_color = "green"
                 elif r2_val >= 0.90:
-                    r2_status = "⚠️ Good"
+                    r2_status = "🙂 Good"
                     r2_color = "orange"
                 elif r2_val >= 0.80:
-                    r2_status = "⚠️ Acceptable"
+                    r2_status = "👍 Acceptable"
                     r2_color = "orange"
                 else:
                     r2_status = "❌ Poor"

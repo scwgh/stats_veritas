@@ -1,6 +1,5 @@
-// src/App.jsx
-import StatisticalTestSelector from './StatisticalTestSelector';
-import './index.css'; // Make sure to import your Tailwind CSS file
+import StatisticalTestSelector from "./StatisticalTestSelector.jsx";
+import "./index.css";
 
 function App() {
   return (

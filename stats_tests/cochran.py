@@ -1,6 +1,18 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from utils import apply_app_styling, units_list
+
+# Set up the page styling
+apply_app_styling()
+
+st.set_page_config(
+    page_title="Cochran Test",
+    page_icon="🧮",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 
 def cochran_test(groups):
     """
@@ -21,7 +33,7 @@ def cochran_test(groups):
 
 st.header("🧮 Cochran’s C Test for Variance Homogeneity")
 
-with st.expander("📘 What is Cochran’s Test?", expanded=False):
+with st.expander("📘 What is Cochran’s Test?", expanded=True):
     st.write("""
         Cochran’s C test is used to detect outliers in variances when comparing multiple groups.  
         It tests whether the **largest variance** is significantly different from the others.

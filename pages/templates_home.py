@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 from utils import apply_app_styling, show_footer
 
 st.set_page_config(
-    page_title="Validation Templates",
+    page_title="Templates",
     page_icon="📂",
     layout="wide",
     initial_sidebar_state="expanded",

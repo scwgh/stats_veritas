@@ -6,7 +6,15 @@ from utils import apply_app_styling, units_list, show_footer
 
 apply_app_styling()
 
-st.header("🧮 Z-Test Between Analyzers (by Material and Analyte)")
+st.set_page_config(
+    page_title="Z-Test",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
+st.header("📊 Z-Test Between Analyzers (by Material and Analyte)")
 
 with st.expander("📘 What is a Z-Test?", expanded=True):
     st.markdown("""
@@ -98,4 +106,3 @@ if uploaded_file is not None:
         except Exception as e:
             st.error(f"Error performing Z-test: {e}")
             
-show_footer()

@@ -2,10 +2,21 @@ import streamlit as st
 import pandas as pd
 from scipy.stats import f
 import numpy as np
+from utils import apply_app_styling, units_list
 
-st.header("🧮 F-Test for Comparing Variances")
+# Set up the page styling
+apply_app_styling()
 
-with st.expander("📘 What is an F-Test?", expanded=False):
+st.set_page_config(
+    page_title="F-Test",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.header("📈 F-Test for Comparing Variances")
+
+with st.expander("📘 What is an F-Test?", expanded=True):
     st.markdown("""
     The **F-Test** is used to compare the variances of two populations and determine whether they are significantly different.
 

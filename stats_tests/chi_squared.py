@@ -1,10 +1,21 @@
 import streamlit as st
 import pandas as pd
 import scipy.stats as stats
+from utils import apply_app_styling, units_list
+
+# Set up the page styling
+apply_app_styling()
+
+st.set_page_config(
+    page_title="Chi-Squared Test",
+    page_icon="🧮",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 st.header("🧮 Chi-Squared Test")
 
-with st.expander("📘 What is the Chi-Squared Test?", expanded=False):
+with st.expander("📘 What is the Chi-Squared Test?", expanded=True):
     st.write("""
         The Chi-Squared test is a statistical method used to assess whether there is a significant difference 
         in the distribution of values between two analyzers for a given analyte and material.
@@ -24,8 +35,7 @@ with st.expander("📘 Instructions"):
 
 # --- File Upload in Expander ---
 with st.expander("📤 Upload Your CSV File", expanded=True):
-    st.markdown("Upload a CSV containing your analyte data. Ensure it includes the following columns: `Material`, `Analyser`, and `Sample ID`.")
-    uploaded_file = st.file_uploader("Choose a file to get started", type=["csv"])
+    uploaded_file = st.file_uploader("   ", type=["csv"])
 
 if uploaded_file is not None:
     try:
