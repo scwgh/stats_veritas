@@ -20,7 +20,7 @@ st.set_page_config(
 
 apply_app_styling()
 
-st.markdown('<h1 class="main-header">📊 Reference Interval Analysis</h1>', unsafe_allow_html=True)
+st.header("📊 Reference Interval Analysis")
 
 with st.expander("📘 What is Reference Interval Analysis?", expanded=True):
     st.markdown("""
@@ -976,8 +976,7 @@ with st.sidebar:
 # ----- Main content area ------
 # File upload
 with st.expander("📤 Upload Your CSV File", expanded=True):
-    st.markdown("Upload a CSV file containing healthy population data with required columns: `Date of Analysis`, `Batch ID`, `Sample ID`, `Date of Birth`.")
-    uploaded_file = st.file_uploader("Choose a file to get started", type=["csv"])
+    uploaded_file = st.file_uploader("   ", type=["csv"])
     if uploaded_file is not None: 
         st.success(f"✅ File successfully uploaded!")
 

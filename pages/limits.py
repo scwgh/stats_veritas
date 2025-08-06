@@ -73,38 +73,38 @@ def upload_data():
             return None
 
 
-# # --- LOB ---
-# def calculate_lob(df):
-#     analyte_names = get_analyte_names(df)
-#     blank_data = df[df['Material'].str.lower() == 'blank']
-#     results_lob = {
-#         'Analyte': [],
-#         'Blank Mean': [
-#         'Blank SD': [],
-#         'LOB': []
-#     }
+# --- LOB ---
+def calculate_lob(df):
+    analyte_names = get_analyte_names(df)
+    blank_data = df[df['Material'].str.lower() == 'blank']
+    results_lob = {
+        'Analyte': [],
+        'Blank Mean': [
+        'Blank SD': [],
+        'LOB': []
+    }
 
-#     for analyte in analyte_names:
-#         col_name = f'Calculated {analyte}'
-#         if col_name not in df.columns:
-#             continue
+    for analyte in analyte_names:
+        col_name = f'Calculated {analyte}'
+        if col_name not in df.columns:
+            continue
 
-#         blank_vals = pd.to_numeric(blank_data[col_name], errors='coerce').dropna()
-#         if blank_vals.empty:
-#             continue
+        blank_vals = pd.to_numeric(blank_data[col_name], errors='coerce').dropna()
+        if blank_vals.empty:
+            continue
 
-#         blank_mean = round(blank_vals.mean(), 5)
-#         blank_sd = round(blank_vals.std(), 5)
-#         lob = round(blank_mean + 1.645 * blank_sd, 5)
+        blank_mean = round(blank_vals.mean(), 5)
+        blank_sd = round(blank_vals.std(), 5)
+        lob = round(blank_mean + 1.645 * blank_sd, 5)
 
-#         results_lob['Analyte'].append(analyte)
-#         results_lob['Blank Mean'].append(blank_mean)
-#         results_lob['Blank SD'].append(blank_sd)
-#         results_lob['LOB'].append(lob)
+        results_lob['Analyte'].append(analyte)
+        results_lob['Blank Mean'].append(blank_mean)
+        results_lob['Blank SD'].append(blank_sd)
+        results_lob['LOB'].append(lob)
 
-#     result_lob_df = pd.DataFrame(results_lob)
-#     st.subheader("📊 Limit of Blank (LOB) Summary")
-#     st.dataframe(result_lob_df)
+    result_lob_df = pd.DataFrame(results_lob)
+    st.subheader("📊 Limit of Blank (LOB) Summary")
+    st.dataframe(result_lob_df)
 
 
 # --- LOD (response-based) ---
@@ -290,9 +290,9 @@ def calculate_loq_dilution(df):
 # --- Run sections ---
 df = upload_data()
 
-# with st.expander("📊 Calculate Limit of Blank (LOB)", expanded=True):
-#     if df is not None:
-#         calculate_lob(df)
+with st.expander("📊 Calculate Limit of Blank (LOB)", expanded=True):
+    if df is not None:
+        calculate_lob(df)
 
 with st.expander("📊 Calculate Limit of Detection (LOD) (Response-based)", expanded=False):
     if df is not None:
