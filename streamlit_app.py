@@ -9,7 +9,7 @@ from utils import apply_app_styling, show_footer
 # Home 
 home_page = st.Page("home.py", title="Home")
 templates_page = st.Page("pages/templates_home.py", title="Templates")
-test_selector_page = st.Page("pages/test_selector.py", title="Choose a test")
+# test_selector_page = st.Page("pages/test_selector.py", title="Choose a test")
 # support_page = st.Page("support.py", title="Contact and Support")
 # Method Comparison
 method_comparison_page = st.Page("method_comparison/overview_mc.py", title="Overview")
@@ -53,7 +53,7 @@ reference_intervals_page = st.Page("pages/reference_intervals.py", title="Refere
 
 # Groups
 pg = st.navigation({
-    "Main": [home_page, templates_page, test_selector_page],
+    "Main": [home_page, templates_page],
     "Imprecision": [imprecision_page],
     "Limits": [limits_page],
     "Linearity": [linearity_page, poly_regression_page, linear_regression_page, 
