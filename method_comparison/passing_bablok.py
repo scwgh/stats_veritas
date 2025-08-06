@@ -559,14 +559,61 @@ apply_app_styling()
 st.title("📊 Passing-Bablok Comparison")
 
 def passing_bablok():
-    with st.expander("📘 What is Passing Bablok Regression?", expanded=False):
+    with st.expander("📘 What is Passing–Bablok Regression?", expanded=True):
         st.markdown("""
-        **Passing Bablok regression** is a **non-parametric method comparison technique** that is robust to outliers and does not assume a specific error distribution.
+        **Passing–Bablok regression** is a **robust, non-parametric linear regression technique** commonly used in **method comparison studies** in clinical chemistry and laboratory medicine.
+
+        It is designed to assess whether two analytical measurement methods produce **comparable results** across a range of values. Unlike ordinary least squares (OLS) regression, Passing–Bablok:
         
-        - Uses median-based calculations instead of least squares
-        - Suitable for method comparison studies
-        - Does not assume normal distribution of errors
-        - Provides slope and intercept estimates with confidence intervals
+        - Does **not assume** a specific distribution for measurement errors (e.g., normality)  
+        - Is **robust to outliers**  
+        - Does **not require** the independent variable to be measured without error  
+        - Yields **symmetric treatment** of both variables (no distinction between x and y)
+
+        ---
+
+        The model assumes a linear relationship between two measurement methods:
+        """)
+        
+        st.latex(r"y = \beta_0 + \beta_1 x")
+        
+        st.markdown("""
+        - $x$: values from method 1 (reference or comparative method)  
+        - $y$: values from method 2 (test method)  
+        - $\\beta_0$: intercept (systematic bias)  
+        - $\\beta_1$: slope (proportional bias)  
+
+        Instead of minimizing squared residuals, Passing–Bablok computes all **pairwise slopes**:
+        """)
+        
+        st.latex(r"S_{ij} = \frac{y_j - y_i}{x_j - x_i}, \quad \text{for all } i < j \text{ and } x_j \ne x_i")
+        
+        st.markdown("""
+        The **median** of all $S_{ij}$ is taken as the estimated slope $\\hat{\\beta}_1$.  
+        The **intercept** is estimated from the median of the adjusted values:
+        """)
+        
+        st.latex(r"\hat{\beta}_0 = \text{median}(y_i - \hat{\beta}_1 x_i)")
+        
+        st.markdown("""
+        ---
+        ### 📈 Interpretation
+
+        - **Intercept** $\\beta_0$: Measures constant (systematic) bias  
+        - **Slope** $\\beta_1$: Measures proportional bias  
+        - **Confidence Intervals**: Computed from the rank statistics of the slope distribution.  
+        - Test if $\\beta_0 = 0$ and $\\beta_1 = 1$ to assess agreement
+
+        ---
+        ### ✅ When to Use Passing–Bablok
+
+        - Comparing a new measurement method to a gold standard  
+        - Evaluating agreement between two assays or instruments  
+        - When **both methods have error** (unlike OLS which assumes error only in $y$)  
+        - In presence of **outliers or heteroscedastic data**
+
+        **References:**
+        - Passing H, Bablok W. A new biometrical procedure for testing the equality of measurements from two different analytical methods. *J Clin Chem Clin Biochem* (1983).
         """)
 
     with st.expander("📘 Instructions:", expanded=False):

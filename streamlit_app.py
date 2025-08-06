@@ -21,13 +21,13 @@ bland_altman_page = st.Page("method_comparison/bland_altman.py", title="Bland-Al
 deming_page = st.Page("method_comparison/deming_regression.py", title="Deming Regression")
 passing_bablok_page = st.Page("method_comparison/passing_bablok.py", title="Passing Bablok Regression")
 # Linearity
-linearity_page = st.Page("regression/linearity.py", title="Linearity Analysis")
+linearity_page = st.Page("regression/linearity.py", title="Overview")
 linear_regression_page = st.Page("regression/linear_regression.py", title="Linear Regression")
 poly_regression_page = st.Page("regression/polynomial_regression.py", title="Polynomial Regression")
 log_regression_page = st.Page("regression/logistic_regression.py", title="Logistic Regression")
 ridge_regression_page = st.Page("regression/ridge_lasso_regression.py", title="Ridge and Lasso Regression")
 # Imprecision
-imprecision_page = st.Page("pages/imprecision.py", title="Imprecision Analysis")
+imprecision_page = st.Page("pages/imprecision.py", title="Imprecision")
 # Statistical tests
 stats_overview_page = st.Page("stats_tests/stats_overview.py", title="Overview")
 anderson_darling_page = st.Page("stats_tests/anderson_darling.py", title="Anderson Darling")

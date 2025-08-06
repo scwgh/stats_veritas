@@ -14,7 +14,7 @@ from datetime import datetime
 from utils import apply_app_styling, check_westgard_rules, grubbs_test, units_list
 
 st.set_page_config(
-    page_title="Imprecision Analysis",
+    page_title="Imprecision",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -577,8 +577,7 @@ def precision_studies(df, selected_analyte, rules_enabled, grubbs_outliers, excl
 
 # --- File Upload ---
 with st.expander("📤 Upload Your CSV File", expanded=True):
-    st.markdown("Upload a CSV containing your analyte data. Ensure it includes the following columns: `Material`, `Analyser`, and `Sample ID`.")
-    uploaded_file = st.file_uploader("Choose a file to get started", type=["csv"])
+    uploaded_file = st.file_uploader("   ", type=["csv"])
     
 if uploaded_file:
     try:

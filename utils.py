@@ -112,15 +112,15 @@ def show_footer():
     st.markdown(
         """
         <footer>
-            <p style='text-align: left; font-size: 6px; line-height: 1.4; color: #555;'>
-                &copy; Validation and Statistical Analysis App (2025). All rights reserved.
+            <p style='text-align: center; font-size: 4px; line-height: 1.4; color: #555;'>
+                &copy; Stats Veritas: Validation and Statistical Analysis App (2025). All rights reserved.
                 <br>
                 Licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" style='color: #4C9ED9;'>Apache 2.0 License</a>.
                 This application does not store any uploaded data and is intended solely for research purposes. 
                 Users are solely responsible for ensuring compliance with all relevant data protection laws and regulatory requirements when uploading or analyzing data. Do not upload any personally identifiable patient information. If patient data must be used, please ensure it is anonymized or pseudonymized wherever possible.
                 You are responsible for ensuring compliance with local data protection and regulatory guidelines when uploading or analyzing data.
                 <br><br>
-                <a href="https://github.com/scwgh/validation_and_statistics" target="_blank" style='text-decoration: none; color: #4C9ED9;'>GitHub Repository</a> |
+                <a href="https://github.com/scwgh/stats_veritas" target="_blank" style='text-decoration: none; color: #4C9ED9;'>GitHub Repository</a> |
                 <a href="mailto:validation.and.stats@gmail.com" style='text-decoration: none; color: #4C9ED9;'>Contact Support</a>
             </p>
         </footer>

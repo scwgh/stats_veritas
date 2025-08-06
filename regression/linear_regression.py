@@ -66,11 +66,17 @@ with st.expander("🔍 Investigating Linearity Issues", expanded=False):
 
 with st.expander("📋 Instructions", expanded=False):
     st.markdown("""
-    1. Upload a CSV file containing your standard curve data
-    2. Ensure the file includes columns for concentration and response values
-    3. Optionally include an identifier column for sample tracking
-    4. Select the appropriate columns and units for analysis
-    5. Review the results and download reports as needed
+    1. Upload Your Data: In the "Upload Your CSV File" section, click to upload a CSV file containing your standard curve data.
+    2. Review Data Preview: Once uploaded, check the "Data Preview" to ensure your data looks correct.
+    3. Configure Analysis: In the "Configure Analysis Parameters" section:
+        - If available, select a specific Analyser to filter your data, or choose "All".
+        - Select the appropriate Units for your measurements.
+        - If your data includes a "Date" column, you can choose to Group by Date to see individual trendlines for each date.
+        - Choose your X-axis (e.g., Expected Concentration) and Y-axis (e.g., Calculated Response) columns.
+        - (Optional) Select a Sample Identifier column for better tracking and detailed results.
+    4. Review Results: The "Linearity Analysis" and "Results Summary" sections will automatically display the standard curve plot, key metrics, and interpretation of your linearity and precision.
+    5. Explore Details: Expand the "Detailed Results Preview" to see residuals, confidence interval assessments, and deviation analysis.
+    6. Download Reports: Use the "Download Options" to save detailed results, a summary report, or confidence interval details as CSV files.
     """)
 
 # Initialize variables

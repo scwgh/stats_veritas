@@ -76,11 +76,11 @@ with st.spinner("Loading the analysis tools... Please wait!"):
 
 with st.container():
     st.markdown("""
-    Welcome to the **Validation and Statistics App** — your comprehensive tool designed specifically for laboratory professionals seeking to streamline and enhance the process of analytical method validation and verification.
+    Welcome to the **Stats Veritas: Validation and Statistics App** — your comprehensive tool designed specifically for laboratory professionals seeking to streamline and enhance the process of analytical method validation and verification.
 
     This app offers a **user-friendly interface** to perform a broad range of essential statistical analyses critical to ensuring data quality and compliance with regulatory standards. 
 
-    ### Why Use This App?
+    ### About This App
 
     - **Simplifies Complex Statistics:** No advanced programming knowledge needed—intuitive controls guide you through each analysis step.
     - **Saves Time:** Automates calculations and generates clear visualizations and reports instantly.
@@ -102,8 +102,9 @@ with st.container():
         - Kolmogorov-Smirnov Test (distribution comparisons)
         - Kruskal-Wallis Test (non-parametric group comparisons)
         - Levene’s Test (variance equality)
+        - "Choose a test" interface for easy navigation
 
-        **Please note:** Modules flagged as **“in development”** are not yet fully validated. **Do not use these modules for critical decision-making until you see a clear confirmation message indicating they are production-ready.**
+        **Please note:** Modules flagged as **“in development”** are not yet fully validated. **Do not use these modules for critical decision-making until you see a clear confirmation message indicating they are production-ready and they have been removed from this list.**
         """)
 
     ### Feedback & Support
@@ -121,7 +122,7 @@ with st.container():
     ### Data Upload Section
     with st.expander("📂 Data Upload and Templates", expanded=False):
         st.markdown("""
-        For each module, your data must be in CSV format. Ensure your data follows the provided templates available in the sidebar.
+        For each module, your data must be in CSV format. Ensure your data follows the provided templates available from the Templates page.
 
         Column names and order (**Date, Material, Analyser, Sample ID, Batch ID, Lot Number**) must be consistent to ensure proper analysis.
 
@@ -130,6 +131,8 @@ with st.container():
         The app automatically detects columns and provides options for selection.
 
         If you encounter issues, please consult documentation or contact support.
+        
+        Please note, the app does not store any uploaded data. All analyses are performed in-memory, and no data is saved to the server or database. This ensures your data privacy and security.
         """)
 
     ### Available Modules
@@ -145,6 +148,9 @@ with st.container():
           - Inter-Analyser Precision
         - **Linearity**
           - Linear Regression
+          - Polynomial Regression
+          - Logistic Regression
+          - Ridge and Lasso Regression
           - Recovery
         - **Limits**
           - Limit of Blank (LOB)
@@ -157,9 +163,6 @@ with st.container():
           - Bland-Altman Analysis
           - Deming Regression
           - Passing-Bablok Analysis
-        - **Outliers**
-          - Grubbs' Test — *in development*
-          - Tietjen-Moore Test — *in development*
         - **More Statistical Tests**
           - Anderson-Darling Test — *in development*
           - Bartlett's Test — *in development*
@@ -173,7 +176,7 @@ with st.container():
           - Mann-Whitney U Test
           - P-P Plots
           - Q-Q Plots
-          - Shapiro-Wilk Test — *in development*
+          - Shapiro-Wilk Test 
           - T-test
           - Total Allowable Error (TEa)
           - Z-test

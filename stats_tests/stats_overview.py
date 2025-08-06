@@ -3,7 +3,7 @@ from utils import apply_app_styling
 
 apply_app_styling()
 
-st.header("🏠 Statistical Tests")
+st.header("🏠 Overview: Statistical Tests")
 
 st.markdown(
     """

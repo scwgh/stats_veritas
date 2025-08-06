@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 apply_app_styling()
-st.header("📚 Method Comparison")
+st.header("📚 Overview: Method Comparison")
 
 with st.expander("📘 Why perform Method Comparison?", expanded=True):
     st.markdown("""
