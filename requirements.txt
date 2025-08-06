@@ -1,5 +1,5 @@
 # Core
-streamlit>=1.27
+streamlit>=1.47
 pandas>=2.2
 numpy>=1.26
 
