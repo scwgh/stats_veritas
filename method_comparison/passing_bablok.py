@@ -290,8 +290,8 @@ def calculate_r2(x, y, slope, intercept):
     ss_residual = np.sum((y - y_pred) ** 2)
     return 1 - (ss_residual / ss_total)
 
-def passing_bablok_regression(x, y):
-    """Perform Passing-Bablok regression"""
+def passing_bablok_regression(x, y, alpha=0.05):
+    """Perform Passing-Bablok regression with confidence intervals"""
     n = len(x)
 
     slopes = []
@@ -305,7 +305,7 @@ def passing_bablok_regression(x, y):
                 slopes.append(dy / dx)
 
     if len(slopes) == 0:
-        return 1.0, 0.0  # Default values if no slopes can be calculated
+        return 1.0, 0.0, (1.0, 1.0), (0.0, 0.0)
 
     slopes = np.sort(slopes)
     n_slopes = len(slopes)
@@ -316,11 +316,26 @@ def passing_bablok_regression(x, y):
     else:
         slope = 0.5 * (slopes[n_slopes // 2 - 1] + slopes[n_slopes // 2])
 
+    # Simple confidence interval calculation
+    # Use percentiles based on alpha level
+    lower_percentile = (alpha/2) * 100
+    upper_percentile = (1 - alpha/2) * 100
+    
+    slope_ci_lower = np.percentile(slopes, lower_percentile)
+    slope_ci_upper = np.percentile(slopes, upper_percentile)
+
     # Calculate intercept as median of y - slope * x
     intercepts = y - slope * x
     intercept = np.median(intercepts)
+    
+    # For intercept CI, use the slopes at the confidence bounds
+    intercepts_lower = y - slope_ci_upper * x  # Note: inverted because of relationship
+    intercepts_upper = y - slope_ci_lower * x
+    
+    intercept_ci_lower = np.median(intercepts_lower)
+    intercept_ci_upper = np.median(intercepts_upper)
 
-    return slope, intercept
+    return slope, intercept, (slope_ci_lower, slope_ci_upper), (intercept_ci_lower, intercept_ci_upper)
 
 def detect_outliers_grubbs(data, alpha=0.05):
     """Detect outliers using Grubbs test - returns boolean mask"""
@@ -391,7 +406,7 @@ def perform_analysis(df, material_type, analyte, analyzer_1, analyzer_2, units, 
         sample_ids_analysis = sample_ids.values
 
     # Perform regression on the selected data
-    slope, intercept = passing_bablok_regression(x_analysis, y_analysis)
+    slope, intercept, slope_ci, intercept_ci = passing_bablok_regression(x_analysis, y_analysis, alpha)
     r2 = calculate_r2(x_analysis, y_analysis, slope, intercept)
 
     results = {
@@ -399,7 +414,11 @@ def perform_analysis(df, material_type, analyte, analyzer_1, analyzer_2, units, 
         "Analyzer 1": analyzer_1,
         "Analyzer 2": analyzer_2,
         "Slope": round(slope, 4),
+        "Slope CI Lower": round(slope_ci[0], 4),
+        "Slope CI Upper": round(slope_ci[1], 4),
         "Intercept": round(intercept, 4),
+        "Intercept CI Lower": round(intercept_ci[0], 4),
+        "Intercept CI Upper": round(intercept_ci[1], 4),
         "R²": round(r2, 4),
         "n": len(x_analysis),
         "Outliers Excluded": "Yes" if remove_outliers and outlier_info else "No"
@@ -418,7 +437,10 @@ def perform_analysis(df, material_type, analyte, analyzer_1, analyzer_2, units, 
         analyzer_2,
         units,
         outlier_mask,  # Pass the boolean mask
-        remove_outliers=remove_outliers
+        remove_outliers=remove_outliers,
+        slope_ci=slope_ci,  # Add confidence intervals for slope
+        intercept_ci=intercept_ci,  # Add confidence intervals for intercept
+        alpha=alpha  # Add alpha parameter
     )
     
     # Create merged dataframe for display (all original data)
@@ -430,8 +452,7 @@ def perform_analysis(df, material_type, analyte, analyzer_1, analyzer_2, units, 
     
     return results, fig, merged_display, outlier_info
 
-def plot_regression_plotly(analyte, x_data, y_data, sample_ids, slope, intercept, r2, analyzer_1, analyzer_2, units, outlier_mask, remove_outliers=False):
-    """Create Plotly regression plot with proper outlier handling and axis adjustment"""
+def plot_regression_plotly(analyte, x_data, y_data, sample_ids, slope, intercept, r2, analyzer_1, analyzer_2, units, outlier_mask, remove_outliers=False, slope_ci=None, intercept_ci=None, alpha=0.05):
     if len(x_data) == 0:
         return go.Figure()
     
@@ -526,12 +547,16 @@ def plot_regression_plotly(analyte, x_data, y_data, sample_ids, slope, intercept
     else:
         equation = f"y = {slope:.4f}x - {abs(intercept):.4f}"
 
+    ci_text = ""
+    if slope_ci is not None and intercept_ci is not None:
+        ci_text = f"<br>Slope CI: [{slope_ci[0]:.4f}, {slope_ci[1]:.4f}]<br>Intercept CI: [{intercept_ci[0]:.4f}, {intercept_ci[1]:.4f}]"
+
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
         mode='markers',
         marker=dict(color='rgba(0,0,0,0)', size=0),
         showlegend=True,
-        name=f"Passing-Bablok: y = {slope:.4f}x + {intercept:.4f}<br>R² = {r2:.4f}, n = {n_points}",
+        name=f"Passing-Bablok: y = {slope:.4f}x + {intercept:.4f}<br>R² = {r2:.4f}, n = {n_points}{ci_text}",
         hoverinfo='skip'
     ))
 
