@@ -147,6 +147,49 @@ def enhanced_outlier_analysis(diffs, alpha=0.05):
     
     return results
 
+def calculate_regression_confidence_intervals(x, y, alpha=0.05):
+    """
+    Calculate confidence intervals for slope and intercept from linear regression.
+    
+    Parameters:
+    - x: independent variable values
+    - y: dependent variable values  
+    - alpha: significance level (default 0.05 for 95% CI)
+    
+    Returns:
+    - slope, intercept, slope_ci, intercept_ci, r_value
+    """
+    n = len(x)
+    
+    # Perform linear regression
+    slope, intercept, r_value, p_val_reg, std_err = stats.linregress(x, y)
+    
+    # Calculate additional statistics needed for confidence intervals
+    x_mean = np.mean(x)
+    y_mean = np.mean(y)
+    
+    # Sum of squares
+    sxx = np.sum((x - x_mean) ** 2)
+    sxy = np.sum((x - x_mean) * (y - y_mean))
+    syy = np.sum((y - y_mean) ** 2)
+    
+    # Mean squared error (residual variance)
+    y_pred = intercept + slope * x
+    mse = np.sum((y - y_pred) ** 2) / (n - 2)
+    
+    # Standard errors
+    se_slope = np.sqrt(mse / sxx)
+    se_intercept = np.sqrt(mse * (1/n + x_mean**2/sxx))
+    
+    # Critical t-value for confidence intervals
+    t_crit = stats.t.ppf(1 - alpha/2, df=n-2)
+    
+    # Confidence intervals
+    slope_ci = (slope - t_crit * se_slope, slope + t_crit * se_slope)
+    intercept_ci = (intercept - t_crit * se_intercept, intercept + t_crit * se_intercept)
+    
+    return slope, intercept, slope_ci, intercept_ci, r_value, p_val_reg
+
 def perform_outlier_detection_with_options(merged_data, selected_analyte, analyzer_1, analyzer_2, alpha):
     """
     Enhanced outlier detection with multiple method options for the user.
@@ -349,7 +392,9 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
     
     # Statistical tests using final data (FIXED: Now using the correctly filtered data)
     t_stat, p_val = stats.ttest_rel(vals1_final, vals2_final)
-    slope, intercept, r_value, p_val_reg, _ = stats.linregress(vals1_final, vals2_final)
+    
+    # Calculate regression with confidence intervals
+    slope, intercept, slope_ci, intercept_ci, r_value, p_val_reg = calculate_regression_confidence_intervals(vals1_final, vals2_final, alpha)
     
     # Calculate percentage statistics using final data (FIXED: Now using the correctly filtered data)
     mean_percent_diff = np.nanmean(percent_diffs_final)
@@ -752,7 +797,7 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
 
 
 
-    # --- Summary Statistics ---
+    # --- Summary Statistics with Enhanced Confidence Intervals ---
     with st.expander("📊 Summary Statistics", expanded=True):
     
         col1, col2, col3 = st.columns(3)
@@ -771,6 +816,58 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
             st.metric("Correlation (R²)", f"{r_value**2:.3f}")
             st.metric("Slope", f"{slope:.3f}")
             st.metric("Intercept", f"{intercept:.3f}")
+        
+        # Enhanced confidence intervals section
+        st.markdown("#### 📐 Regression Confidence Intervals")
+        
+        confidence_level = int((1 - alpha) * 100)
+        
+        col1_ci, col2_ci = st.columns(2)
+        
+        with col1_ci:
+            st.markdown(f"**{confidence_level}% Confidence Interval for Slope:**")
+            st.markdown(f"**{slope_ci[0]:.4f}** to **{slope_ci[1]:.4f}**")
+            
+            # Interpretation of slope CI
+            if slope_ci[0] <= 1 <= slope_ci[1]:
+                st.success("✅ CI includes 1.0 (perfect agreement)")
+            else:
+                if slope_ci[1] < 1:
+                    st.warning(f"⚠️ Slope significantly < 1.0 ({analyzer_2} underestimates)")
+                else:
+                    st.warning(f"⚠️ Slope significantly > 1.0 ({analyzer_2} overestimates)")
+        
+        with col2_ci:
+            st.markdown(f"**{confidence_level}% Confidence Interval for Intercept:**")
+            st.markdown(f"**{intercept_ci[0]:.4f}** to **{intercept_ci[1]:.4f}**")
+            
+            # Interpretation of intercept CI
+            if intercept_ci[0] <= 0 <= intercept_ci[1]:
+                st.success("✅ CI includes 0.0 (no systematic bias)")
+            else:
+                if intercept_ci[1] < 0:
+                    st.warning(f"⚠️ Significant negative bias ({analyzer_2} systematically lower)")
+                else:
+                    st.warning(f"⚠️ Significant positive bias ({analyzer_2} systematically higher)")
+        
+        # Additional regression statistics
+        st.markdown("#### 📈 Additional Regression Statistics")
+        
+        col1_reg, col2_reg, col3_reg = st.columns(3)
+        
+        with col1_reg:
+            st.metric("Regression p-value", f"{p_val_reg:.6f}")
+        
+        with col2_reg:
+            # Calculate slope as percentage deviation from 1.0
+            slope_percent_dev = abs(slope - 1.0) * 100
+            st.metric("Slope deviation from 1.0", f"{slope_percent_dev:.1f}%")
+        
+        with col3_reg:
+            # Calculate intercept as percentage of mean
+            mean_values = np.mean([np.mean(vals1_final), np.mean(vals2_final)])
+            intercept_percent = abs(intercept) / mean_values * 100 if mean_values != 0 else 0
+            st.metric("Intercept as % of mean", f"{intercept_percent:.1f}%")
         
         
         # --- Full Summary Table: All Materials × All Analytes ---
@@ -819,20 +916,21 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
                         std_diff = np.std(diffs_clean, ddof=1)
                         n_samples = len(diffs_clean)
                         _, p_val = stats.ttest_rel(vals1_clean, vals2_clean)
+                        
+                        # Calculate regression with confidence intervals for summary
+                        slope_summ, intercept_summ, slope_ci_summ, intercept_ci_summ, r_value_summ, p_val_reg_summ = calculate_regression_confidence_intervals(vals1_clean, vals2_clean, alpha)
+                        
                     else:
                         mean_diff = np.mean(diffs)
                         std_diff = np.std(diffs, ddof=1)
                         n_samples = len(diffs)
                         _, p_val = stats.ttest_rel(vals1, vals2)
+                        
+                        # Calculate regression with confidence intervals for summary
+                        slope_summ, intercept_summ, slope_ci_summ, intercept_ci_summ, r_value_summ, p_val_reg_summ = calculate_regression_confidence_intervals(vals1.values, vals2.values, alpha)
                     
                     loa_upper = mean_diff + 1.96 * std_diff
                     loa_lower = mean_diff - 1.96 * std_diff
-                    
-                    # Calculate correlation
-                    if exclude_outliers and is_outlier_summary.any():
-                        slope, intercept, r_value, _, _ = stats.linregress(vals1_clean, vals2_clean)
-                    else:
-                        slope, intercept, r_value, _, _ = stats.linregress(vals1, vals2)
                     
                     summary_table.append({
                         'Material': material,
@@ -845,8 +943,14 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
                         'SD of Differences': round(std_diff, 3),
                         'LoA Lower': round(loa_lower, 3),
                         'LoA Upper': round(loa_upper, 3),
-                        'R²': round(r_value**2, 3),
-                        'p-value': round(p_val, 3)
+                        'R²': round(r_value_summ**2, 3),
+                        'p-value': round(p_val, 3),
+                        'Slope': round(slope_summ, 4),
+                        'Slope CI Lower': round(slope_ci_summ[0], 4),
+                        'Slope CI Upper': round(slope_ci_summ[1], 4),
+                        'Intercept': round(intercept_summ, 4),
+                        'Intercept CI Lower': round(intercept_ci_summ[0], 4),
+                        'Intercept CI Upper': round(intercept_ci_summ[1], 4)
                     })
                     
                 except Exception as e:
@@ -878,7 +982,11 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
             high_correlation = len(summary_df[summary_df['R²'] > 0.9])
             total_outliers = summary_df['N Outliers'].sum()
             
-            col1, col2, col3, col4 = st.columns(4)
+            # Check for slope and intercept significance
+            slope_significant = len(summary_df[~((summary_df['Slope CI Lower'] <= 1) & (summary_df['Slope CI Upper'] >= 1))])
+            intercept_significant = len(summary_df[~((summary_df['Intercept CI Lower'] <= 0) & (summary_df['Intercept CI Upper'] >= 0))])
+            
+            col1, col2, col3, col4, col5 = st.columns(5)
             
             with col1:
                 st.metric("Total Combinations", total_combinations)
@@ -890,31 +998,42 @@ def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analy
                 st.metric("High Correlation (R² > 0.9)", f"{high_correlation}/{total_combinations}")
             
             with col4:
-                st.metric("Total Outliers Detected", total_outliers)
+                st.metric("Significant Slope Bias", f"{slope_significant}/{total_combinations}")
+                
+            with col5:
+                st.metric("Significant Intercept Bias", f"{intercept_significant}/{total_combinations}")
             
             # Show materials/analytes with concerning results
             concerning_results = summary_df[
                 (summary_df['p-value'] < 0.05) | 
                 (summary_df['R²'] < 0.8) | 
-                (summary_df['N Outliers'] > 0)
+                (summary_df['N Outliers'] > 0) |
+                (~((summary_df['Slope CI Lower'] <= 1) & (summary_df['Slope CI Upper'] >= 1))) |
+                (~((summary_df['Intercept CI Lower'] <= 0) & (summary_df['Intercept CI Upper'] >= 0)))
             ]
             
             if len(concerning_results) > 0:
                 st.markdown("#### ⚠️ Attention Required")
-                st.markdown("*The following combinations show significant differences, low correlation, or outliers:*")
+                st.markdown("*The following combinations show significant differences, low correlation, outliers, or bias:*")
                 
                 # Create a more focused display
                 concerning_display = concerning_results[['Material', 'Analyte', 'Analyzer 1', 'Analyzer 2', 
-                                                    'p-value', 'R²', 'N Outliers']].copy()
+                                                    'p-value', 'R²', 'N Outliers', 'Slope', 'Intercept']].copy()
                 
                 # Add interpretation column
                 def interpret_concern(row):
                     concerns = []
                     if row['R²'] < 0.8:
-                        concerns.append("Correlation score <0.8 - further investigation suggested.")
+                        concerns.append("Low correlation (<0.8)")
                     if row['N Outliers'] > 0:
                         concerns.append(f"{row['N Outliers']} outlier(s)")
-                    return "; ".join(concerns)
+                    if not (row['Slope'] >= summary_df.loc[summary_df.index[summary_df['Material'] == row['Material']].tolist()[0], 'Slope CI Lower'] and 
+                           row['Slope'] <= summary_df.loc[summary_df.index[summary_df['Material'] == row['Material']].tolist()[0], 'Slope CI Upper']):
+                        if row['Slope'] < 1:
+                            concerns.append("Slope bias (underestimation)")
+                        else:
+                            concerns.append("Slope bias (overestimation)")
+                    return "; ".join(concerns) if concerns else "Statistical significance"
                 
                 concerning_display['Concerns'] = concerning_results.apply(interpret_concern, axis=1)
                 st.dataframe(concerning_display, use_container_width=True, hide_index=True)
