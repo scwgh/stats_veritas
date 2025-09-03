@@ -281,44 +281,42 @@ def perform_outlier_detection_with_options(merged_data, selected_analyte, analyz
 
 def prepare_matched_data(df, material_type, selected_analyte, analyzer_1, analyzer_2):
     """
-    Prepare matched data for Bland-Altman analysis
+    Updated function that calls the standardized data preparation.
+    This maintains backward compatibility while using the new standardized approach.
     """
-    # Filter data for the selected material
-    data = df[df['Material'] == material_type].copy()
+    from data_preparation import prepare_matched_data_standardized
     
-    # Get data for each analyzer
-    data_analyzer1 = data[data['Analyser'] == analyzer_1][['Sample ID', selected_analyte]].dropna()
-    data_analyzer2 = data[data['Analyser'] == analyzer_2][['Sample ID', selected_analyte]].dropna()
-    
-    # Convert to numeric
-    data_analyzer1[selected_analyte] = pd.to_numeric(data_analyzer1[selected_analyte], errors='coerce')
-    data_analyzer2[selected_analyte] = pd.to_numeric(data_analyzer2[selected_analyte], errors='coerce')
-    
-    # Remove NaN values
-    data_analyzer1 = data_analyzer1.dropna()
-    data_analyzer2 = data_analyzer2.dropna()
-    
-    # Merge on Sample ID to get only matching samples
-    merged_data = pd.merge(
-        data_analyzer1, 
-        data_analyzer2, 
-        on='Sample ID', 
-        suffixes=('_1', '_2'),
-        how='inner'
+    return prepare_matched_data_standardized(
+        df, material_type, selected_analyte, analyzer_1, analyzer_2, 
+        handle_duplicates='mean', verbose=False
     )
-    
-    return merged_data
 
-def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analyzer_2, units, exclude_outliers, alpha, selected_outliers=None, method_choice=None):
+def bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analyzer_2, units, exclude_outliers, alpha, selected_outliers=None, method_choice=None, handle_duplicates='mean'):
     """
     Perform Bland-Altman analysis and create plots
     """
-    # Prepare matched data
-    merged_data = prepare_matched_data(df, material_type, selected_analyte, analyzer_1, analyzer_2)
+    from data_preparation import get_analysis_ready_data
     
-    if len(merged_data) == 0:
-        st.warning(f"No matching samples found between {analyzer_1} and {analyzer_2} for {selected_analyte}")
+    # Use standardized data preparation
+    try:
+        vals1, vals2, sample_ids, n_samples, merged_data = get_analysis_ready_data(
+            df, material_type, selected_analyte, analyzer_1, analyzer_2, handle_duplicates
+        )
+    except ValueError as e:
+        st.warning(str(e))
         return
+    except Exception as e:
+        st.error(f"Error in data preparation: {str(e)}")
+        return
+    
+    st.info(f"📊 Analysis using {n_samples} matched sample pairs")
+    
+    # Convert to the format expected by the rest of the function
+    merged_data_old_format = pd.DataFrame({
+        'Sample ID': sample_ids,
+        f'{selected_analyte}_1': vals1,
+        f'{selected_analyte}_2': vals2
+    })
     
     # Extract values and calculate differences
     vals1 = merged_data[f'{selected_analyte}_1'].values  # Convert to numpy array
@@ -1108,6 +1106,18 @@ if uploaded_file:
                 index=0
             )
             
+            # Add duplicate handling option
+            duplicate_handling = st.selectbox(
+                "Handle Duplicate Sample IDs:",
+                options=['mean', 'first', 'last'],
+                index=0,
+                help="""
+                • mean: Average multiple measurements for the same Sample ID
+                • first: Keep the first occurrence of each Sample ID  
+                • last: Keep the last occurrence of each Sample ID
+                """
+            )
+            
             # Enhanced Outlier Detection Settings
             st.markdown("**Enhanced Outlier Detection Settings**")
             
@@ -1139,4 +1149,8 @@ if uploaded_file:
 
         # Run analysis button
         if st.button("🔬 Run Bland-Altman Analysis", type="primary"):
-            bland_altman_analysis(df, material_type, selected_analyte, analyzer_1, analyzer_2, units, exclude_outliers, alpha, selected_outliers, method_choice)
+            bland_altman_analysis(
+            df, material_type, selected_analyte, analyzer_1, analyzer_2, 
+            units, exclude_outliers, alpha, selected_outliers, method_choice,
+            handle_duplicates=duplicate_handling  # Add this line
+        )

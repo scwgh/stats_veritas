@@ -6,6 +6,7 @@ from scipy.odr import ODR, RealData, Model
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from utils import apply_app_styling, units_list
+from data_preparation import get_analysis_ready_data
 
 apply_app_styling()
 
@@ -352,57 +353,38 @@ with st.expander("⚙️ Analysis Settings", expanded=True):
         "Comprehensive (Grubbs + Large % Diff)": 'comprehensive'
     }
     chosen_method = outlier_methods[selected_method_name] if selected_method_name else None
-
-# ===== MISSING DATA PROCESSING SECTION - THIS WAS THE PROBLEM =====
-# Filter data for selected material and analyte
-filtered_df = df[df['Material'] == selected_material].copy()
-
-# Check if selected analyte has data
-if selected_analyte not in filtered_df.columns:
-    st.error(f"❌ Analyte '{selected_analyte}' not found in the data.")
-    st.stop()
-
-# Remove rows where the selected analyte is null
-filtered_df = filtered_df.dropna(subset=[selected_analyte])
-
-if len(filtered_df) == 0:
-    st.error(f"❌ No data found for material '{selected_material}' and analyte '{selected_analyte}'.")
-    st.stop()
-
-# Create pivot table to get paired data
-try:
-    pivot = filtered_df.pivot_table(
-        index='Sample ID', 
-        columns='Analyser', 
-        values=selected_analyte, 
-        aggfunc='mean'
+    
+    # Add duplicate handling option
+    duplicate_handling = st.selectbox(
+        "Handle Duplicate Sample IDs:",
+        options=['mean', 'first', 'last'],
+        index=0,
+        help="""
+        • mean: Average multiple measurements for the same Sample ID
+        • first: Keep the first occurrence of each Sample ID  
+        • last: Keep the last occurrence of each Sample ID
+        """
     )
-    
-    # Filter for the two selected analyzers
-    if analyzer_1 not in pivot.columns or analyzer_2 not in pivot.columns:
-        st.error(f"❌ One or both analyzers not found in data for the selected material and analyte.")
-        st.stop()
-    
-    pivot = pivot[[analyzer_1, analyzer_2]].dropna()
-    
-    if len(pivot) == 0:
-        st.error(f"❌ No paired data found between {analyzer_1} and {analyzer_2}.")
-        st.stop()
-        
+# ===== MISSING DATA PROCESSING SECTION - THIS WAS THE PROBLEM =====
+st.markdown("### 📊 Data Processing")
+
+try:
+    original_x, original_y, original_sample_ids, n_original, merged_data_full = get_analysis_ready_data(
+        df, selected_material, selected_analyte, analyzer_1, analyzer_2, 
+        handle_duplicates='mean', verbose=True
+    )
+except ValueError as e:
+    st.error(f"❌ {str(e)}")
+    st.stop()
 except Exception as e:
-    st.error(f"❌ Error creating pivot table: {str(e)}")
+    st.error(f"❌ Unexpected error in data preparation: {str(e)}")
     st.stop()
 
-# Extract data
-original_x = pivot[analyzer_1].values
-original_y = pivot[analyzer_2].values
-original_sample_ids = pivot.index.tolist()
-n_original = len(original_x)
-
+st.success(f"✅ Successfully prepared {n_original} matched sample pairs for analysis")
 
 # Initialize data for regression
 x = original_x.copy()
-y = original_y.copy()
+y = original_y.copy() 
 sample_ids = original_sample_ids.copy()
 outlier_flags = np.array([False] * n_original)
 outlier_details_df = pd.DataFrame()
