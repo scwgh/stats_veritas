@@ -4,148 +4,149 @@ import numpy as np
 from scipy import stats
 import plotly.graph_objects as go
 from utils import apply_app_styling, units_list
+from outlier_detection import standardized_outlier_detection
 import io
 
 apply_app_styling()
 
-def grubbs_test(values, alpha=0.05):
-    """
-    Original Grubbs test for outlier detection (single outlier detection)
-    KEEPING THIS FOR BACKWARD COMPATIBILITY
-    """
-    values = pd.Series(values)
-    n = len(values)
-    if n < 3:
-        return np.array([False] * n)
+# def grubbs_test(values, alpha=0.05):
+#     """
+#     Original Grubbs test for outlier detection (single outlier detection)
+#     KEEPING THIS FOR BACKWARD COMPATIBILITY
+#     """
+#     values = pd.Series(values)
+#     n = len(values)
+#     if n < 3:
+#         return np.array([False] * n)
 
-    abs_diff = abs(values - values.mean())
-    max_diff_idx = abs_diff.idxmax()
-    G = abs_diff[max_diff_idx] / values.std(ddof=1)
+#     abs_diff = abs(values - values.mean())
+#     max_diff_idx = abs_diff.idxmax()
+#     G = abs_diff[max_diff_idx] / values.std(ddof=1)
 
-    # Critical value from Grubbs test table (two-sided)
-    t_crit = stats.t.ppf(1 - alpha / (2 * n), df=n - 2)
-    G_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t_crit**2 / (n - 2 + t_crit**2))
+#     # Critical value from Grubbs test table (two-sided)
+#     t_crit = stats.t.ppf(1 - alpha / (2 * n), df=n - 2)
+#     G_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t_crit**2 / (n - 2 + t_crit**2))
 
-    is_outlier = np.array([False] * n)
-    if G > G_crit:
-        is_outlier[max_diff_idx] = True
-    return is_outlier
+#     is_outlier = np.array([False] * n)
+#     if G > G_crit:
+#         is_outlier[max_diff_idx] = True
+#     return is_outlier
 
-def grubbs_test_iterative(values, alpha=0.05, max_iterations=10):
-    """
-    Perform iterative Grubbs test for outlier detection.
-    This will continue removing outliers until no more are found or max_iterations is reached.
-    """
-    values = pd.Series(values).copy()
-    outlier_indices = []
-    original_indices = values.index.tolist()
+# def grubbs_test_iterative(values, alpha=0.05, max_iterations=10):
+#     """
+#     Perform iterative Grubbs test for outlier detection.
+#     This will continue removing outliers until no more are found or max_iterations is reached.
+#     """
+#     values = pd.Series(values).copy()
+#     outlier_indices = []
+#     original_indices = values.index.tolist()
     
-    for iteration in range(max_iterations):
-        n = len(values)
-        if n < 3:  # Need at least 3 points for Grubbs test
-            break
+#     for iteration in range(max_iterations):
+#         n = len(values)
+#         if n < 3:  # Need at least 3 points for Grubbs test
+#             break
             
-        # Calculate Grubbs statistic
-        mean_val = values.mean()
-        std_val = values.std(ddof=1)
+#         # Calculate Grubbs statistic
+#         mean_val = values.mean()
+#         std_val = values.std(ddof=1)
         
-        if std_val == 0:  # All values are the same
-            break
+#         if std_val == 0:  # All values are the same
+#             break
             
-        abs_diff = abs(values - mean_val)
-        max_diff_idx = abs_diff.idxmax()
-        G = abs_diff[max_diff_idx] / std_val
+#         abs_diff = abs(values - mean_val)
+#         max_diff_idx = abs_diff.idxmax()
+#         G = abs_diff[max_diff_idx] / std_val
         
-        # Critical value from Grubbs test table (two-sided)
-        t_crit = stats.t.ppf(1 - alpha / (2 * n), df=n - 2)
-        G_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t_crit**2 / (n - 2 + t_crit**2))
+#         # Critical value from Grubbs test table (two-sided)
+#         t_crit = stats.t.ppf(1 - alpha / (2 * n), df=n - 2)
+#         G_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t_crit**2 / (n - 2 + t_crit**2))
         
-        if G > G_crit:
-            # Found an outlier
-            outlier_indices.append(max_diff_idx)
-            values = values.drop(max_diff_idx)
-        else:
-            # No more outliers found
-            break
+#         if G > G_crit:
+#             # Found an outlier
+#             outlier_indices.append(max_diff_idx)
+#             values = values.drop(max_diff_idx)
+#         else:
+#             # No more outliers found
+#             break
     
-    # Create boolean mask for original data
-    is_outlier = np.array([idx in outlier_indices for idx in original_indices])
-    return is_outlier
+#     # Create boolean mask for original data
+#     is_outlier = np.array([idx in outlier_indices for idx in original_indices])
+#     return is_outlier
 
-def identify_outliers_beyond_limits(differences, mean_diff, std_diff, alpha=0.05, method='grubbs_iterative'):
-    """
-    Identify outliers using multiple methods and return the most comprehensive result.
+# def identify_outliers_beyond_limits(differences, mean_diff, std_diff, alpha=0.05, method='grubbs_iterative'):
+#     """
+#     Identify outliers using multiple methods and return the most comprehensive result.
     
-    Parameters:
-    - differences: array of difference values
-    - mean_diff: mean of differences
-    - std_diff: standard deviation of differences
-    - alpha: significance level for Grubbs test
-    - method: 'grubbs_iterative', 'grubbs_single', 'limits_only', or 'combined'
-    """
-    n = len(differences)
+#     Parameters:
+#     - differences: array of difference values
+#     - mean_diff: mean of differences
+#     - std_diff: standard deviation of differences
+#     - alpha: significance level for Grubbs test
+#     - method: 'grubbs_iterative', 'grubbs_single', 'limits_only', or 'combined'
+#     """
+#     n = len(differences)
     
-    if method == 'grubbs_iterative':
-        return grubbs_test_iterative(differences, alpha)
+#     if method == 'grubbs_iterative':
+#         return grubbs_test_iterative(differences, alpha)
     
-    elif method == 'grubbs_single':
-        return grubbs_test(differences, alpha)
+#     elif method == 'grubbs_single':
+#         return grubbs_test(differences, alpha)
     
-    elif method == 'limits_only':
-        # Simply identify points outside ±1.96 SD limits
-        loa_upper = mean_diff + 1.96 * std_diff
-        loa_lower = mean_diff - 1.96 * std_diff
-        return (differences > loa_upper) | (differences < loa_lower)
+#     elif method == 'limits_only':
+#         # Simply identify points outside ±1.96 SD limits
+#         loa_upper = mean_diff + 1.96 * std_diff
+#         loa_lower = mean_diff - 1.96 * std_diff
+#         return (differences > loa_upper) | (differences < loa_lower)
     
-    elif method == 'combined':
-        # Combine Grubbs test with limit-based detection
-        grubbs_outliers = grubbs_test_iterative(differences, alpha)
+#     elif method == 'combined':
+#         # Combine Grubbs test with limit-based detection
+#         grubbs_outliers = grubbs_test_iterative(differences, alpha)
         
-        # Recalculate limits after removing Grubbs outliers
-        if grubbs_outliers.any():
-            clean_diffs = differences[~grubbs_outliers]
-            if len(clean_diffs) > 0:
-                clean_mean = np.mean(clean_diffs)
-                clean_std = np.std(clean_diffs, ddof=1)
-                clean_upper = clean_mean + 1.96 * clean_std
-                clean_lower = clean_mean - 1.96 * clean_std
+#         # Recalculate limits after removing Grubbs outliers
+#         if grubbs_outliers.any():
+#             clean_diffs = differences[~grubbs_outliers]
+#             if len(clean_diffs) > 0:
+#                 clean_mean = np.mean(clean_diffs)
+#                 clean_std = np.std(clean_diffs, ddof=1)
+#                 clean_upper = clean_mean + 1.96 * clean_std
+#                 clean_lower = clean_mean - 1.96 * clean_std
                 
-                # Check if any remaining points are outside the new limits
-                limit_outliers = (differences > clean_upper) | (differences < clean_lower)
-                return grubbs_outliers | limit_outliers
+#                 # Check if any remaining points are outside the new limits
+#                 limit_outliers = (differences > clean_upper) | (differences < clean_lower)
+#                 return grubbs_outliers | limit_outliers
         
-        return grubbs_outliers
+#         return grubbs_outliers
     
-    else:
-        raise ValueError("Method must be 'grubbs_iterative', 'grubbs_single', 'limits_only', or 'combined'")
+#     else:
+#         raise ValueError("Method must be 'grubbs_iterative', 'grubbs_single', 'limits_only', or 'combined'")
 
-def enhanced_outlier_analysis(diffs, alpha=0.05):
-    """
-    Perform comprehensive outlier analysis and return detailed information.
-    """
-    n = len(diffs)
-    mean_diff = np.mean(diffs)
-    std_diff = np.std(diffs, ddof=1)
+# def enhanced_outlier_analysis(diffs, alpha=0.05):
+#     """
+#     Perform comprehensive outlier analysis and return detailed information.
+#     """
+#     n = len(diffs)
+#     mean_diff = np.mean(diffs)
+#     std_diff = np.std(diffs, ddof=1)
     
-    # Apply different outlier detection methods
-    methods = {
-        'Grubbs (Single)': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'grubbs_single'),
-        'Grubbs (Iterative)': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'grubbs_iterative'),
-        'Limits Only (±1.96σ)': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'limits_only'),
-        'Combined Method': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'combined')
-    }
+#     # Apply different outlier detection methods
+#     methods = {
+#         'Grubbs (Single)': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'grubbs_single'),
+#         'Grubbs (Iterative)': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'grubbs_iterative'),
+#         'Limits Only (±1.96σ)': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'limits_only'),
+#         'Combined Method': identify_outliers_beyond_limits(diffs, mean_diff, std_diff, alpha, 'combined')
+#     }
     
-    # Calculate limits of agreement
-    loa_upper = mean_diff + 1.96 * std_diff
-    loa_lower = mean_diff - 1.96 * std_diff
+#     # Calculate limits of agreement
+#     loa_upper = mean_diff + 1.96 * std_diff
+#     loa_lower = mean_diff - 1.96 * std_diff
     
-    results = {
-        'methods': methods,
-        'limits': {'upper': loa_upper, 'lower': loa_lower, 'mean': mean_diff, 'std': std_diff},
-        'n_total': n
-    }
+#     results = {
+#         'methods': methods,
+#         'limits': {'upper': loa_upper, 'lower': loa_lower, 'mean': mean_diff, 'std': std_diff},
+#         'n_total': n
+#     }
     
-    return results
+#     return results
 
 def calculate_regression_confidence_intervals(x, y, alpha=0.05):
     """
@@ -190,94 +191,37 @@ def calculate_regression_confidence_intervals(x, y, alpha=0.05):
     
     return slope, intercept, slope_ci, intercept_ci, r_value, p_val_reg
 
-def perform_outlier_detection_with_options(merged_data, selected_analyte, analyzer_1, analyzer_2, alpha):
-    """
-    Enhanced outlier detection with multiple method options for the user.
-    """
-    # Extract values and calculate differences
-    vals1 = merged_data[f'{selected_analyte}_1']
-    vals2 = merged_data[f'{selected_analyte}_2']
-    diffs_initial = vals1 - vals2
+# def standardized_outlier_detection(merged_data, selected_analyte, analyzer_1, analyzer_2, 
+#                                  alpha=0.05, analysis_type='bland_altman'):
+#     """
+#     Standardized outlier detection function for both Passing-Bablok and Bland-Altman analyses.
     
-    # Perform comprehensive outlier analysis
-    outlier_analysis = enhanced_outlier_analysis(diffs_initial.values, alpha=alpha)
+#     Returns:
+#     --------
+#     dict with keys:
+#         - 'outliers_mask': boolean array indicating outliers
+#         - 'method_name': name of detection method used
+#         - 'exclude_outliers': whether user chose to exclude outliers
+#         - 'n_outliers': number of outliers detected
+#         - 'outlier_sample_ids': list of outlier sample IDs
+#     """
     
-    # Display results for each method
-    st.markdown("**Outlier Detection Method Comparison:**")
+#     # Create the interface
+#     outliers_mask, method_name, exclude_outliers = create_outlier_detection_interface(
+#         merged_data, selected_analyte, analyzer_1, analyzer_2, alpha, analysis_type
+#     )
     
-    method_results = {}
-    for method_name, is_outlier in outlier_analysis['methods'].items():
-        n_outliers = sum(is_outlier)
-        method_results[method_name] = {
-            'outliers': is_outlier,
-            'count': n_outliers,
-            'indices': np.where(is_outlier)[0] if n_outliers > 0 else []
-        }
+#     # Compile results
+#     n_outliers = sum(outliers_mask)
+#     outlier_sample_ids = merged_data['Sample ID'].iloc[outliers_mask].tolist() if n_outliers > 0 else []
     
-    # Create comparison table
-    comparison_data = []
-    for method_name, result in method_results.items():
-        comparison_data.append({
-            'Method': method_name,
-            'Outliers Found': result['count'],
-            'Sample IDs': ', '.join(merged_data['Sample ID'].iloc[result['indices']].astype(str).tolist()) if result['count'] > 0 else 'None'
-        })
-    
-    comparison_df = pd.DataFrame(comparison_data)
-    st.dataframe(comparison_df, use_container_width=True, hide_index=True)
-    
-    # Let user choose method
-    method_choice = st.selectbox(
-        "Select outlier detection method:",
-        options=list(outlier_analysis['methods'].keys()),
-        index=2,  # Default to 'Limits Only' which is more straightforward
-        help="""
-        - **Grubbs (Single)**: Detects only the most extreme outlier
-        - **Grubbs (Iterative)**: Repeatedly applies Grubbs test until no more outliers found
-        - **Limits Only (±1.96σ)**: Simply flags points outside ±1.96 standard deviations
-        - **Combined Method**: Uses iterative Grubbs + limit checking for comprehensive detection
-        """
-    )
-    
-    selected_outliers = outlier_analysis['methods'][method_choice]
-    
-    # Always get outlier details (even if empty) to avoid NameError
-    outlier_indices = np.where(selected_outliers)[0]
-    
-    if len(outlier_indices) == 0:
-        st.success(f"✅ No outliers detected using {method_choice}.")
-        return selected_outliers, method_choice
-    else:
-        # Get outlier details
-        outlier_sample_ids = merged_data['Sample ID'].iloc[outlier_indices].tolist()
-        outlier_vals1 = vals1.iloc[outlier_indices].tolist()
-        outlier_vals2 = vals2.iloc[outlier_indices].tolist()
-        outlier_diffs = diffs_initial.iloc[outlier_indices].tolist()
-        
-        st.error(f"⚠️ {len(outlier_indices)} outlier(s) detected using {method_choice}:")
-        
-        # Create outlier details table
-        outlier_details = []
-        for i, idx in enumerate(outlier_indices):
-            # Calculate how far outside limits this point is
-            mean_diff = np.mean(diffs_initial)
-            std_diff = np.std(diffs_initial, ddof=1)
-            z_score = abs(outlier_diffs[i] - mean_diff) / std_diff
-            
-            outlier_details.append({
-                'Sample ID': outlier_sample_ids[i],
-                f'{analyzer_1}': round(outlier_vals1[i], 3),
-                f'{analyzer_2}': round(outlier_vals2[i], 3),
-                'Difference': round(outlier_diffs[i], 3),
-                'Mean': round((outlier_vals1[i] + outlier_vals2[i]) / 2, 3),
-                'Z-Score': round(z_score, 2),
-                'Outside Limits': '✓' if abs(z_score) > 1.96 else '✗'
-            })
-        
-        outlier_df = pd.DataFrame(outlier_details)
-        st.dataframe(outlier_df, use_container_width=True, hide_index=True)
-        
-        return selected_outliers, method_choice
+#     return {
+#         'outliers_mask': outliers_mask,
+#         'method_name': method_name,
+#         'exclude_outliers': exclude_outliers,
+#         'n_outliers': n_outliers,
+#         'outlier_sample_ids': outlier_sample_ids
+#     }
 
 def prepare_matched_data(df, material_type, selected_analyte, analyzer_1, analyzer_2):
     """
@@ -1136,16 +1080,15 @@ if uploaded_file:
                 st.warning(f"No matching samples found between {analyzer_1} and {analyzer_2} for {selected_analyte}")
             
             # Enhanced outlier detection with multiple methods
-            selected_outliers, method_choice = perform_outlier_detection_with_options(
-                merged_data, selected_analyte, analyzer_1, analyzer_2, alpha
+            outlier_results = standardized_outlier_detection(
+                merged_data, selected_analyte, analyzer_1, analyzer_2, 
+                alpha=alpha, analysis_type='passing_bablok'  # or 'bland_altman'
             )
-            
-            exclude_outliers = False
-            if selected_outliers.any():
-                exclude_outliers = st.checkbox("Exclude detected outliers from analysis", value=False)
-                if exclude_outliers:
-                    outlier_sample_ids = merged_data['Sample ID'].iloc[selected_outliers].tolist()
-                    st.warning(f"⚠️ {sum(selected_outliers)} outlier(s) will be excluded from analysis using {method_choice}: {', '.join(map(str, outlier_sample_ids))}")
+
+            # Extract results:
+            selected_outliers = outlier_results['outliers_mask']
+            method_choice = outlier_results['method_name'] 
+            exclude_outliers = outlier_results['exclude_outliers']
 
         # Run analysis button
         if st.button("🔬 Run Bland-Altman Analysis", type="primary"):
