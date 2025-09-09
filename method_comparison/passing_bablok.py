@@ -291,11 +291,15 @@ def calculate_r2(x, y, slope, intercept):
     return 1 - (ss_residual / ss_total)
 
 def passing_bablok_regression(x, y, alpha=0.05):
-    """Perform Passing-Bablok regression with confidence intervals"""
+    """
+    Perform Passing-Bablok regression with confidence intervals based on the
+    original method.
+    """
     n = len(x)
+    if n < 3:
+        return np.nan, np.nan, (np.nan, np.nan), (np.nan, np.nan)
 
     slopes = []
-
     # Compute all pairwise slopes
     for i in range(n - 1):
         for j in range(i + 1, n):
@@ -310,28 +314,38 @@ def passing_bablok_regression(x, y, alpha=0.05):
     slopes = np.sort(slopes)
     n_slopes = len(slopes)
 
-    # Get median slope
-    if n_slopes % 2 == 1:
-        slope = slopes[n_slopes // 2]
-    else:
-        slope = 0.5 * (slopes[n_slopes // 2 - 1] + slopes[n_slopes // 2])
+    # Get the median slope
+    slope = np.median(slopes)
 
-    # Simple confidence interval calculation
-    # Use percentiles based on alpha level
-    lower_percentile = (alpha/2) * 100
-    upper_percentile = (1 - alpha/2) * 100
+    # Calculate the ranks for the confidence intervals (CIs)
+    # The original formula uses a non-parametric approach with z-scores
+    # Source: Passing & Bablok (1983) and subsequent literature.
+    z_alpha_half = stats.norm.ppf(1 - alpha / 2)
+    c_val = z_alpha_half * np.sqrt(n * (n - 1) * (2 * n + 5) / 18)
     
-    slope_ci_lower = np.percentile(slopes, lower_percentile)
-    slope_ci_upper = np.percentile(slopes, upper_percentile)
+    # Calculate ranks for the lower and upper bounds
+    # Note: Ranks are 0-indexed in Python
+    m1 = int(np.floor((n_slopes - c_val) / 2))
+    m2 = int(np.ceil((n_slopes + c_val) / 2))
+    
+    # The ranks should not be less than 0 or greater than the number of slopes
+    m1 = max(0, m1)
+    m2 = min(n_slopes - 1, m2)
 
-    # Calculate intercept as median of y - slope * x
+    # The slope CI is the interval between the slopes at these ranks
+    slope_ci_lower = slopes[m1]
+    slope_ci_upper = slopes[m2]
+
+    # Calculate the intercept as the median of y - slope * x
     intercepts = y - slope * x
     intercept = np.median(intercepts)
     
     # For intercept CI, use the slopes at the confidence bounds
-    intercepts_lower = y - slope_ci_upper * x  # Note: inverted because of relationship
+    # Note: The relationship is inverse, so slope_ci_lower is used for the upper bound
+    # and slope_ci_upper is used for the lower bound.
+    intercepts_lower = y - slope_ci_upper * x
     intercepts_upper = y - slope_ci_lower * x
-    
+
     intercept_ci_lower = np.median(intercepts_lower)
     intercept_ci_upper = np.median(intercepts_upper)
 
