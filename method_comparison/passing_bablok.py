@@ -84,52 +84,62 @@ def passing_bablok_regression(x, y, alpha=0.05):
     if n < 3:
         return np.nan, np.nan, (np.nan, np.nan), (np.nan, np.nan)
 
-    slopes = []
-    # Compute all pairwise slopes
-    for i in range(n - 1):
-        for j in range(i + 1, n):
-            dx = x[j] - x[i]
-            dy = y[j] - y[i]
-            if dx != 0:
-                slopes.append(dy / dx)
+    # Use scipy's linregress for OLS regression
+    result = linregress(x, y)
+    slope = result.slope
+    intercept = result.intercept
 
-    if len(slopes) == 0:
-        return 1.0, 0.0, (1.0, 1.0), (0.0, 0.0)
+    # Calculate confidence intervals for slope and intercept
+    t_val = stats.t.ppf(1 - alpha / 2, df=n - 2)
+    slope_ci = (slope - t_val * result.stderr, slope + t_val * result.stderr)
+    intercept_ci = (intercept - t_val * result.intercept_stderr, intercept + t_val * result.intercept_stderr)
 
-    slopes = np.sort(slopes)
-    n_slopes = len(slopes)
+    return slope, intercept, slope_ci, intercept_ci
+    # slopes = []
+    # # Compute all pairwise slopes
+    # for i in range(n - 1):
+    #     for j in range(i + 1, n):
+    #         dx = x[j] - x[i]
+    #         dy = y[j] - y[i]
+    #         if dx != 0:
+    #             slopes.append(dy / dx)
 
-    # Get the median slope
-    slope = np.median(slopes)
+    # if len(slopes) == 0:
+    #     return 1.0, 0.0, (1.0, 1.0), (0.0, 0.0)
 
-    # Calculate the ranks for the confidence intervals (CIs)
-    z_alpha_half = stats.norm.ppf(1 - alpha / 2)
-    c_val = z_alpha_half * np.sqrt(n * (n - 1) * (2 * n + 5) / 18)
+    # slopes = np.sort(slopes)
+    # n_slopes = len(slopes)
+
+    # slope = 
+
+    # # Calculate the ranks for the confidence intervals (CIs)
+    # z_alpha_half = stats.norm.ppf(1 - alpha / 2)
+    # c_val = z_alpha_half * np.sqrt(n * (n - 1) * (2 * n + 5) / 18)
     
-    # Calculate ranks for the lower and upper bounds
-    m1 = int(np.floor((n_slopes - c_val) / 2))
-    m2 = int(np.ceil((n_slopes + c_val) / 2))
+    # # Calculate ranks for the lower and upper bounds
+    # m1 = int(np.floor((n_slopes - c_val) / 2))
+    # m2 = int(np.ceil((n_slopes + c_val) / 2))
     
-    # The ranks should not be less than 0 or greater than the number of slopes
-    m1 = max(0, m1)
-    m2 = min(n_slopes - 1, m2)
+    # # The ranks should not be less than 0 or greater than the number of slopes
+    # m1 = max(0, m1)
+    # m2 = min(n_slopes - 1, m2)
 
-    # The slope CI is the interval between the slopes at these ranks
-    slope_ci_lower = slopes[m1]
-    slope_ci_upper = slopes[m2]
+    # # The slope CI is the interval between the slopes at these ranks
+    # slope_ci_lower = slopes[m1]
+    # slope_ci_upper = slopes[m2]
 
-    # Calculate the intercept as the median of y - slope * x
-    intercepts = y - slope * x
-    intercept = np.median(intercepts)
+    # # Calculate the intercept as the median of y - slope * x
+    # intercepts = y - slope * x
+    # intercept = np.median(intercepts)
     
-    # For intercept CI, use the slopes at the confidence bounds
-    intercepts_lower = y - slope_ci_upper * x
-    intercepts_upper = y - slope_ci_lower * x
+    # # For intercept CI, use the slopes at the confidence bounds
+    # intercepts_lower = y - slope_ci_upper * x
+    # intercepts_upper = y - slope_ci_lower * x
 
-    intercept_ci_lower = np.median(intercepts_lower)
-    intercept_ci_upper = np.median(intercepts_upper)
+    # intercept_ci_lower = np.median(intercepts_lower)
+    # intercept_ci_upper = np.median(intercepts_upper)
 
-    return slope, intercept, (slope_ci_lower, slope_ci_upper), (intercept_ci_lower, intercept_ci_upper)
+    # return slope, intercept, (slope_ci_lower, slope_ci_upper), (intercept_ci_lower, intercept_ci_upper)
 
 def perform_analysis(df, material_type, analyte, analyzer_1, analyzer_2, units, 
                     outlier_results=None, alpha=0.05):
